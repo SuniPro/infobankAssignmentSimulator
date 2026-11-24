@@ -81,9 +81,12 @@ public final class ExperimentRunner {
     }
     SimulationEngine engine = new SimulationEngine(
         policy,
-        new ProviderSimulator(scenario.providerTps(), scenario.deliveryDelay()),
+        new ProviderSimulator(
+            scenario.serviceModel(), scenario.providerCapacity(), scenario.deliveryDelay()),
         new MetricsCollector(
-            scenario.tenants(), scenario.providerTps(), scenario.observationWindow()),
+            scenario.tenants(), scenario.serviceModel(), scenario.providerCapacity(),
+            scenario.deliveryDelay(), scenario.observationWindow(),
+            ScenarioReservations.paperDepartureForMetrics(scenario)),
         observer,
         true);
     for (Message message : scenario.messages()) {

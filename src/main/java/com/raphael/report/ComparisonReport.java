@@ -50,7 +50,7 @@ public final class ComparisonReport {
         scenario.description()));
     out.append(String.format(Locale.ROOT,
         "Messages: %,d | Provider: %,d TPS | Delivery delay: %s%n",
-        scenario.messages().size(), scenario.providerTps(),
+        scenario.messages().size(), scenario.providerCapacity(),
         formatDuration(scenario.deliveryDelay())));
     for (ExperimentResult arm : arms) {
       out.append(String.format(Locale.ROOT, "  %s = %s [%s]%n", arm.config().experimentId(),

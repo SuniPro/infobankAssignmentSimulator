@@ -39,4 +39,12 @@ public interface SchedulingPolicy {
    * 스케줄링 작업량 척도로 사용한다. 구체적인 정의는 각 구현을 참고한다.
    */
   long operationCount();
+
+  /**
+   * 정책별 알고리즘 진단 계수 (예: 라운드 수, heap 연산 수, 차입 횟수). 결정론적이어야 하며
+   * CPU 명령 수가 아니다. 기본값은 비어 있다. 반환 순서가 보고 순서가 된다.
+   */
+  default java.util.Map<String, Long> diagnostics() {
+    return java.util.Map.of();
+  }
 }

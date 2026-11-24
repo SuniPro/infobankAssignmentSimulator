@@ -85,7 +85,7 @@ class ExperimentIntegrationTest {
   void everyArmRespectsProviderCapacityInEverySlidingSecond() {
     for (long seed = 1; seed <= 5; seed++) {
       Scenario scenario = randomScenario(seed);
-      int tps = scenario.providerTps();
+      int tps = scenario.providerCapacity();
       for (ExperimentConfig arm : ARMS) {
         long[] times = Runs.trace(scenario, arm).dispatchTimes();
         for (int k = 0; k + tps < times.length; k++) {

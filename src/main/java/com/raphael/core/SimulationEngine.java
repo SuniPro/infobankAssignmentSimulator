@@ -87,7 +87,8 @@ public final class SimulationEngine {
           "Simulation ended with " + scheduler.pendingCount() + " undispatched messages");
     }
     return metrics.buildResult(
-        scheduler.name(), clock.now(), schedulerSelections, scheduler.operationCount());
+        scheduler.name(), clock.now(), schedulerSelections, scheduler.operationCount(),
+        scheduler.diagnostics());
   }
 
   /** 측정한 경우, enqueue와 selectNext 내부에서 소요된 총 경과 시간(CPU 시간 아님, 나노초). */
@@ -164,7 +165,7 @@ public final class SimulationEngine {
     lastDispatchTime = now;
     metrics.onDispatch(message, now);
     observer.onDispatch(message, now);
-    schedule(provider.dispatch(now), EventType.DELIVERED, message);
+    schedule(provider.dispatch(now, message.cost()), EventType.DELIVERED, message);
     scheduleDispatch();
   }
 
