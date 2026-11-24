@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Deficit Weighted Round Robin (tenant별 quantum을 적용한 Shreedhar &amp; Varghese DRR).
@@ -63,6 +64,8 @@ public final class DwrrScheduler implements SchedulingPolicy {
 
   private final long baseQuantum;
   private final Map<String, Integer> tenantWeights;
+  private final Function<Message, String> classifier;
+  private final String name;
   private final Map<String, TenantQueue> queues = new HashMap<>();
   private final ArrayDeque<TenantQueue> activeRing = new ArrayDeque<>();
 
@@ -82,28 +85,40 @@ public final class DwrrScheduler implements SchedulingPolicy {
    * @param baseQuantum 방문마다 weight 1단위당 더해지는 양수 deficit
    */
   public DwrrScheduler(Map<String, Integer> tenantWeights, int baseQuantum) {
+    this(tenantWeights, baseQuantum, Message::tenantId, "DWRR");
+  }
+
+  /**
+   * 큐 토폴로지를 바꿀 수 있는 생성자. {@code classifier} 가 메시지를 큐 키로 보내고
+   * {@code queueWeights} 는 그 키별 가중치이다. 기본 생성자는 테넌트 id 를 키로 쓴다.
+   */
+  public DwrrScheduler(Map<String, Integer> queueWeights, int baseQuantum,
+      Function<Message, String> classifier, String name) {
     if (baseQuantum <= 0) {
       throw new IllegalArgumentException("baseQuantum must be positive: " + baseQuantum);
     }
-    tenantWeights.forEach((tenant, weight) -> {
+    queueWeights.forEach((tenant, weight) -> {
       if (weight == null || weight <= 0) {
         throw new IllegalArgumentException("Weight must be positive for tenant " + tenant);
       }
     });
     this.baseQuantum = baseQuantum;
-    this.tenantWeights = Map.copyOf(tenantWeights);
+    this.tenantWeights = Map.copyOf(queueWeights);
+    this.classifier = classifier;
+    this.name = name;
   }
 
   @Override
   public String name() {
-    return "DWRR";
+    return name;
   }
 
   @Override
   public void enqueue(Message message) {
-    TenantQueue queue = queues.get(message.tenantId());
+    String key = classifier.apply(message);
+    TenantQueue queue = queues.get(key);
     if (queue == null) {
-      queue = createQueue(message.tenantId());
+      queue = createQueue(key);
     }
     queue.add(message);
     pending++;

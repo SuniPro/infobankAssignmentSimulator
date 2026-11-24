@@ -3,6 +3,7 @@ package com.raphael.scenario;
 import com.raphael.domain.Message;
 import com.raphael.domain.Tenant;
 import com.raphael.metrics.ObservationWindow;
+import com.raphael.provider.ServiceModel;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,18 +20,36 @@ import java.util.Set;
  * @param tenants 보고 순서대로 나열된 tenant와 각 weight
  * @param messages id가 엄격히 증가하는 순서의 메시지 목록. 리스트 순서는 도착 이벤트가 예약되는
  *     순서이기도 하며, 도착 timestamp가 같을 때의 tie-breaker 역할을 한다.
- * @param providerTps provider 처리량 한도
+ * @param providerCapacity provider 용량 (초당 메시지 수, 또는 COST_RATE 에서는 초당 cost 단위)
  * @param deliveryDelay 마이크로초 단위의 고정 외부 배달 지연
  * @param observationWindow 서비스 할당량과 공정성 측정을 위한 관측 구간(있는 경우)
+ * @param serviceModel provider 점유 시간 모델. 비교되는 모든 정책이 공유한다
+ * @param reservationRates tenant 별 명시적 예약률(초당 cost 단위). 비어 있으면 예약률은 weight 에
+ *     비례한다 ({@code R_i = w_i / Σw × C}). 논문 예제 재현용 시나리오만 명시값을 사용한다.
  */
 public record Scenario(
     String name,
     String description,
     List<Tenant> tenants,
     List<Message> messages,
-    int providerTps,
+    int providerCapacity,
     long deliveryDelay,
-    Optional<ObservationWindow> observationWindow) {
+    Optional<ObservationWindow> observationWindow,
+    ServiceModel serviceModel,
+    Map<String, Long> reservationRates) {
+
+  /** v0.2 호환 생성자: MESSAGE_RATE, weight 비례 예약률. */
+  public Scenario(
+      String name,
+      String description,
+      List<Tenant> tenants,
+      List<Message> messages,
+      int providerCapacity,
+      long deliveryDelay,
+      Optional<ObservationWindow> observationWindow) {
+    this(name, description, tenants, messages, providerCapacity, deliveryDelay,
+        observationWindow, ServiceModel.MESSAGE_RATE, Map.of());
+  }
 
   public Scenario {
     tenants = List.copyOf(tenants);
@@ -54,11 +73,26 @@ public record Scenario(
       }
       previousId = message.id();
     }
-    if (providerTps <= 0 || providerTps > 1_000_000) {
-      throw new IllegalArgumentException("providerTps must be in [1, 1_000_000]");
+    if (serviceModel == null) {
+      throw new IllegalArgumentException("serviceModel is required");
+    }
+    if (providerCapacity <= 0
+        || (serviceModel == ServiceModel.MESSAGE_RATE && providerCapacity > 1_000_000)) {
+      throw new IllegalArgumentException("Invalid provider capacity: " + providerCapacity);
     }
     if (deliveryDelay < 0) {
       throw new IllegalArgumentException("deliveryDelay must be non-negative");
+    }
+    reservationRates = Map.copyOf(reservationRates);
+    if (!reservationRates.isEmpty()) {
+      if (!reservationRates.keySet().equals(tenantIds)) {
+        throw new IllegalArgumentException("Explicit reservation rates must cover every tenant");
+      }
+      for (long rate : reservationRates.values()) {
+        if (rate <= 0 || rate > providerCapacity) {
+          throw new IllegalArgumentException("Reservation rate must be in (0, capacity]: " + rate);
+        }
+      }
     }
     observationWindow = observationWindow == null ? Optional.empty() : observationWindow;
   }

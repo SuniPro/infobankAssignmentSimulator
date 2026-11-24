@@ -16,6 +16,10 @@ import java.util.Optional;
  * @param schedulerOperations 정책이 정의하는 기본 스케줄링 단계 수
  * @param providerCapacityViolations 초당 tps 감사를 위반한 디스패치 수(기대값 0)
  * @param fairness 시나리오에 관측 윈도우가 설정된 경우, 그 윈도우에서의 서비스 할당
+ * @param tenantGroups 테넌트별 확장 지표 (업무 deadline 과 논문 출발 위반 분리, slack, lateness)
+ * @param messageTypeGroups 메시지 유형별 확장 지표 (테넌트 무관)
+ * @param tenantTypeGroups "테넌트/유형" 키의 확장 지표
+ * @param schedulerDiagnostics 정책이 보고한 알고리즘 계수 (CPU 명령 수가 아님)
  */
 public record SimulationResult(
     String policyName,
@@ -24,10 +28,29 @@ public record SimulationResult(
     long schedulerSelections,
     long schedulerOperations,
     long providerCapacityViolations,
-    Optional<WindowedFairness> fairness) {
+    Optional<WindowedFairness> fairness,
+    Map<String, GroupMetrics> tenantGroups,
+    Map<String, GroupMetrics> messageTypeGroups,
+    Map<String, GroupMetrics> tenantTypeGroups,
+    Map<String, Long> schedulerDiagnostics) {
 
   public SimulationResult {
     tenants = Collections.unmodifiableMap(new LinkedHashMap<>(tenants));
+    tenantGroups = Collections.unmodifiableMap(new LinkedHashMap<>(tenantGroups));
+    messageTypeGroups = Collections.unmodifiableMap(new LinkedHashMap<>(messageTypeGroups));
+    tenantTypeGroups = Collections.unmodifiableMap(new LinkedHashMap<>(tenantTypeGroups));
+    schedulerDiagnostics = Collections.unmodifiableMap(new LinkedHashMap<>(schedulerDiagnostics));
+  }
+
+  /** 유형 그룹 (예: "OTP"). 해당 유형 메시지가 없으면 empty. */
+  public Optional<GroupMetrics> messageType(String type) {
+    return Optional.ofNullable(messageTypeGroups.get(type));
+  }
+
+  /** 전달된 총 cost 를 가상 경과 시간으로 나눈 처리량 (초당 cost 단위). */
+  public double deliveredCostPerSecond() {
+    long cost = tenantGroups.values().stream().mapToLong(GroupMetrics::dispatchedCost).sum();
+    return virtualElapsed == 0 ? 0 : cost * 1e6 / virtualElapsed;
   }
 
   public TenantMetrics tenant(String tenantId) {

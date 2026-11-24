@@ -29,7 +29,9 @@ application {
 tasks.test {
     useJUnitPlatform()
     // Full-scale scenario tests (800,001 messages) keep every latency sample in memory.
-    maxHeapSize = "2g"
+    maxHeapSize = "3g"
+    // Allows regenerating golden files explicitly: ./gradlew test -Dgolden.record=true
+    systemProperty("golden.record", System.getProperty("golden.record") ?: "false")
     testLogging {
         events("failed")
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
