@@ -265,4 +265,51 @@ public final class MessageScenarios {
         tenants, b.build(), TPS, DELAY,
         Optional.of(new ObservationWindow(10 * MICROS_PER_SECOND, 120 * MICROS_PER_SECOND)));
   }
+
+  /**
+   * F1 샤드 장애 워크로드 (v0.4). T00 (aggressor) 이 광고 {@code aggressorAds} 건을 t=0 에 넣고,
+   * T01–T15 는 각각 광고 {@code adsPerTenant} 건 (t=0) 과 1 s 부터 2 s 마다 OTP (TTL 10 s) 를 60 s
+   * 동안 보낸다. 모든 가중치 1. 장애 자체는 실험 arm 의 샤드 설정으로 주입한다 (같은 워크로드로
+   * 장애 유무를 비교하기 위함).
+   */
+  public static Scenario shardFailureWorkload(int aggressorAds, int adsPerTenant) {
+    MessageListBuilder b = new MessageListBuilder();
+    List<Tenant> tenants = new ArrayList<>();
+    for (int t = 0; t < 16; t++) {
+      String id = String.format("T%02d", t);
+      tenants.add(new Tenant(id, 1));
+      int ads = t == 0 ? aggressorAds : adsPerTenant;
+      for (int i = 0; i < ads; i++) {
+        b.add(id, MessageType.ADVERTISEMENT, 0, LONG_TTL, 1);
+      }
+      if (t > 0) {
+        for (long at = MICROS_PER_SECOND + t * 100 * MICROS_PER_MILLISECOND;
+            at < 61 * MICROS_PER_SECOND; at += 2 * MICROS_PER_SECOND) {
+          b.add(id, MessageType.OTP, at, at + 10 * MICROS_PER_SECOND, 1);
+        }
+      }
+    }
+    return new Scenario("F1", "Aggressor T00 (" + aggressorAds + " ads) + 15 tenants with ads"
+        + " and OTPs (TTL 10 s)", tenants, b.build(), TPS, DELAY, Optional.empty());
+  }
+
+  /**
+   * S13 장기 대기 (Aging, v0.4). L 은 업무 deadline 24 h 인 광고 {@code oldAds} 건을 t=0 에 넣고,
+   * S 는 deadline 300 s 인 광고를 초당 {@code streamRate} 건씩 {@code streamSeconds} 동안 계속 보낸다.
+   * 같은 서비스 클래스, 같은 가중치. 업무 목표 순서에서는 S 의 새 메시지가 라운드마다 L 보다 먼저
+   * 나가므로 L 의 메시지가 오래 기다린다.
+   */
+  public static Scenario prolongedWaiting(int oldAds, int streamRate, int streamSeconds) {
+    MessageListBuilder b = new MessageListBuilder();
+    for (int i = 0; i < oldAds; i++) {
+      b.add("L", MessageType.ADVERTISEMENT, 0, 86_400 * MICROS_PER_SECOND, 1);
+    }
+    long gap = MICROS_PER_SECOND / streamRate;
+    for (long at = 0; at < streamSeconds * MICROS_PER_SECOND; at += gap) {
+      b.add("S", MessageType.ADVERTISEMENT, at, at + 300 * MICROS_PER_SECOND, 1);
+    }
+    return new Scenario("S13", "Prolonged waiting: L (24 h deadline, " + oldAds + " ads) vs"
+        + " S stream (" + streamRate + "/s, 300 s deadline)",
+        List.of(new Tenant("L", 1), new Tenant("S", 1)), b.build(), TPS, DELAY, Optional.empty());
+  }
 }

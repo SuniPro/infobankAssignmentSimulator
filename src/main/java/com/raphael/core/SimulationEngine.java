@@ -5,6 +5,7 @@ import com.raphael.metrics.MetricsCollector;
 import com.raphael.metrics.SimulationResult;
 import com.raphael.provider.ProviderSimulator;
 import com.raphael.scheduling.SchedulingPolicy;
+import com.raphael.core.ResourceController.ResourceEvent;
 import java.util.PriorityQueue;
 
 /**
@@ -31,7 +32,11 @@ public final class SimulationEngine {
   private final boolean measureSchedulerTime;
 
   private long sequence;
-  private boolean dispatchScheduled;
+  /**
+   * 유효한 DISPATCH_READY 사건의 시각 (없으면 -1). 더 이른 시각의 dispatch 가 필요해지면 새 사건을
+   * 넣고 이 값을 바꾼다. 시각이 이 값과 다른 DISPATCH_READY 사건은 대체된 것이므로 무시한다.
+   */
+  private long scheduledDispatchTime = -1;
   private boolean started;
   private long lastDispatchTime = -1;
 
@@ -71,14 +76,30 @@ public final class SimulationEngine {
       throw new IllegalStateException("SimulationEngine instances are single-use");
     }
     started = true;
+    if (scheduler instanceof ResourceController controller) {
+      for (ResourceEvent event : controller.resourceEvents()) {
+        events.offer(new SimulationEvent(event.time(), sequence++,
+            event.failure() ? EventType.RESOURCE_FAILURE : EventType.RESOURCE_RECOVERY, null,
+            event.resource()));
+      }
+    }
 
     SimulationEvent event;
     while ((event = events.poll()) != null) {
       clock.advanceTo(event.timestamp());
       switch (event.type()) {
         case ARRIVAL -> handleArrival(event.message());
-        case DISPATCH_READY -> handleDispatch();
+        case DISPATCH_READY -> {
+          if (event.timestamp() == scheduledDispatchTime) {
+            handleDispatch();
+          }
+        }
         case DELIVERED -> handleDelivery(event.message());
+        case RESOURCE_FAILURE -> ((ResourceController) scheduler).fail(event.resource(), clock.now());
+        case RESOURCE_RECOVERY -> {
+          ((ResourceController) scheduler).recover(event.resource(), clock.now());
+          scheduleDispatch();
+        }
       }
     }
 
@@ -110,11 +131,22 @@ public final class SimulationEngine {
   }
 
   private void scheduleDispatch() {
-    if (dispatchScheduled || scheduler.isEmpty()) {
+    if (scheduler.isEmpty()) {
       return;
     }
-    dispatchScheduled = true;
-    schedule(Math.max(clock.now(), provider.nextAvailableTime()), EventType.DISPATCH_READY, null);
+    scheduleDispatchAt(Math.max(clock.now(), provider.nextAvailableTime()));
+  }
+
+  /**
+   * {@code time} 에 dispatch 판단을 예약한다. 이미 같거나 더 이른 판단이 예약되어 있으면 아무것도
+   * 하지 않는다 (v0.3 까지의 사건 순서와 동일). 더 이른 시각이면 새 사건이 기존 사건을 대체한다.
+   */
+  private void scheduleDispatchAt(long time) {
+    if (scheduledDispatchTime >= 0 && scheduledDispatchTime <= time) {
+      return;
+    }
+    scheduledDispatchTime = time;
+    schedule(time, EventType.DISPATCH_READY, null);
   }
 
   private void handleArrival(Message message) {
@@ -133,8 +165,24 @@ public final class SimulationEngine {
   }
 
   private void handleDispatch() {
-    dispatchScheduled = false;
+    scheduledDispatchTime = -1;
     long now = clock.now();
+    if (scheduler.isEmpty()) {
+      return;
+    }
+    // v0.4: 대기 작업이 있어도 예산·샤드 슬롯·장애 때문에 지금은 선택할 수 없을 수 있다. 그 경우
+    // 선택 가능성이 바뀌는 미래 시각에만 다시 판단한다 (같은 시각 재예약 없음). MAX 이면 도착이나
+    // 자원 복구 사건이 dispatch 를 다시 예약한다.
+    long eligibleAt = scheduler.nextEligibleTime(now);
+    if (eligibleAt != now) {
+      if (eligibleAt < now) {
+        throw new IllegalStateException(scheduler.name() + " reported a past eligibility time");
+      }
+      if (eligibleAt != Long.MAX_VALUE) {
+        scheduleDispatchAt(Math.max(eligibleAt, provider.nextAvailableTime()));
+      }
+      return;
+    }
 
     // 방어적 불변식: provider는 발송 간격을 최소 floor(1s / tps) >= 1us로 벌리므로, 두 발송이
     // 같은 timestamp를 가질 수 없다. 이 검사는 향후의 회귀를 같은 timestamp에서 끝없이 도는

@@ -41,6 +41,19 @@ public interface SchedulingPolicy {
   long operationCount();
 
   /**
+   * v0.4: 지금 선택 가능한 메시지가 있으면 {@code now}, 없으면 선택 가능성이 바뀔 수 있는 가장 이른
+   * 미래 시각 (예: 예산 보충, 샤드 슬롯 해제), 외부 사건 (도착, 자원 복구) 없이는 바뀌지 않으면
+   * {@link Long#MAX_VALUE} 를 돌려준다. 반환값이 {@code now} 이면 바로 이어지는 {@link #selectNext}
+   * 는 반드시 메시지를 돌려줘야 한다. 같은 {@code now} 로 반복 호출해도 결과가 같아야 하며 (멱등),
+   * 엔진은 {@code now} 를 감소시키지 않는다. 메시지를 꺼내거나 deficit 을 소비해서는 안 된다.
+   *
+   * <p>기본 구현 (FIFO, DWRR, 게이트 없는 WDEDF, EDF): 대기 메시지가 있으면 항상 선택 가능.
+   */
+  default long nextEligibleTime(long now) {
+    return isEmpty() ? Long.MAX_VALUE : now;
+  }
+
+  /**
    * 정책별 알고리즘 진단 계수 (예: 라운드 수, heap 연산 수, 차입 횟수). 결정론적이어야 하며
    * CPU 명령 수가 아니다. 기본값은 비어 있다. 반환 순서가 보고 순서가 된다.
    */

@@ -13,6 +13,7 @@ import com.raphael.scheduling.wdedf.PaperDepartureTimePolicy;
 import com.raphael.scheduling.wdedf.ReservationModel;
 import com.raphael.scheduling.wdedf.WdedfConfig;
 import com.raphael.scheduling.wdedf.WdedfScheduler;
+import java.util.Map;
 import java.util.OptionalLong;
 import java.util.function.Function;
 
@@ -28,7 +29,27 @@ import java.util.function.Function;
  * @param policyFactory 시나리오에 맞게 설정된 새 빈 정책을 만든다
  */
 public record ExperimentConfig(
-    String experimentId, String label, Function<Scenario, SchedulingPolicy> policyFactory) {
+    String experimentId,
+    String label,
+    Function<Scenario, SchedulingPolicy> policyFactory,
+    Map<String, String> settings) {
+
+  public ExperimentConfig {
+    settings = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(settings));
+  }
+
+  /** 설정 기록 없이 만드는 v0.3 호환 생성자. */
+  public ExperimentConfig(
+      String experimentId, String label, Function<Scenario, SchedulingPolicy> policyFactory) {
+    this(experimentId, label, policyFactory, Map.of());
+  }
+
+  /** 같은 정책에 다른 식별자·설정 기록을 붙인다. */
+  public ExperimentConfig with(String id, String newLabel, Map<String, String> extraSettings) {
+    Map<String, String> merged = new java.util.LinkedHashMap<>(settings);
+    merged.putAll(extraSettings);
+    return new ExperimentConfig(id, newLabel, policyFactory, merged);
+  }
 
   /** WDEDF·EDF 의 정렬 기준. */
   public enum DepartureMode {
@@ -61,7 +82,8 @@ public record ExperimentConfig(
 
   /** E0: 단일 공유 FIFO 큐. */
   public static ExperimentConfig fifo() {
-    return new ExperimentConfig("E0", "Shared FIFO", scenario -> new FifoScheduler());
+    return new ExperimentConfig("E0", "Shared FIFO", scenario -> new FifoScheduler(),
+        Map.of("scheduler", "FIFO"));
   }
 
   /** E1: 테넌트별 FIFO 큐 + DWRR. 가중치는 시나리오의 테넌트에서 가져온다. */
@@ -69,7 +91,9 @@ public record ExperimentConfig(
     return new ExperimentConfig(
         "E1",
         "Tenant queues + DWRR (base quantum " + baseQuantum + ")",
-        scenario -> new DwrrScheduler(scenario.tenantWeights(), baseQuantum));
+        scenario -> new DwrrScheduler(scenario.tenantWeights(), baseQuantum),
+        Map.of("scheduler", "DWRR", "baseQuantum", String.valueOf(baseQuantum),
+            "topology", "TENANT"));
   }
 
   /** 토폴로지를 지정한 DWRR (진단용 TENANT_AND_TYPE 비교). */
@@ -95,7 +119,12 @@ public record ExperimentConfig(
           departurePolicy(arm.mode(), scenario, reservations, layout),
           layout.classifier(),
           new WdedfConfig(name, arm.lambdaBasisPoints(), arm.idleDebtPolicy()));
-    });
+    }, Map.of("scheduler", "WDEDF", "departure", arm.mode().name(),
+        "lambdaBasisPoints", String.valueOf(arm.lambdaBasisPoints()),
+        "idleDebtPolicy", arm.idleDebtPolicy().name(), "topology", arm.topology().name(),
+        "baseQuantum", String.valueOf(arm.baseQuantum()),
+        "minimumQuantum", arm.minimumQuantum().isPresent()
+            ? String.valueOf(arm.minimumQuantum().getAsLong()) : "derived"));
   }
 
   /** 진단용 전역 메시지 EDF. */

@@ -79,16 +79,21 @@ public final class ExperimentRunner {
     if (!policy.isEmpty()) {
       throw new IllegalStateException("Policy factory must return a new, empty policy");
     }
+    MetricsCollector metrics = new MetricsCollector(
+        scenario.tenants(), scenario.serviceModel(), scenario.providerCapacity(),
+        scenario.deliveryDelay(), scenario.observationWindow(),
+        ScenarioReservations.paperDepartureForMetrics(scenario));
     SimulationEngine engine = new SimulationEngine(
         policy,
         new ProviderSimulator(
             scenario.serviceModel(), scenario.providerCapacity(), scenario.deliveryDelay()),
-        new MetricsCollector(
-            scenario.tenants(), scenario.serviceModel(), scenario.providerCapacity(),
-            scenario.deliveryDelay(), scenario.observationWindow(),
-            ScenarioReservations.paperDepartureForMetrics(scenario)),
+        metrics,
         observer,
         true);
+    if (policy instanceof com.raphael.scheduling.budget.TenantBudgetHolder holder
+        && holder.tenantBudget() != null) {
+      metrics.enableTenantBudgetAudit(holder.tenantBudget().rate(), holder.tenantBudget().burst());
+    }
     for (Message message : scenario.messages()) {
       engine.scheduleArrival(message);
     }
@@ -126,6 +131,10 @@ public final class ExperimentRunner {
     }
     if (r.providerCapacityViolations() != 0) {
       throw new IllegalStateException("Provider capacity exceeded in " + arm);
+    }
+    if (r.serviceBudgetViolations() != 0
+        || r.schedulerDiagnostics().getOrDefault("shardCapacityViolations", 0L) != 0) {
+      throw new IllegalStateException("Service budget or shard capacity violated in " + arm);
     }
   }
 

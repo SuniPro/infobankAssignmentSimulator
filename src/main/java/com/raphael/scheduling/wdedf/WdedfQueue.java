@@ -28,6 +28,8 @@ final class WdedfQueue {
   long lastQuantumRound = -1;
   /** waiting 목록 중복 등록 방지 플래그. */
   boolean waitingListed;
+  /** v0.4: 예산 게이트 때문에 heap 대신 주차 목록에 있는 ACTIVE 큐. */
+  boolean parked;
 
   WdedfQueue previousBlocked;
   WdedfQueue nextBlocked;
