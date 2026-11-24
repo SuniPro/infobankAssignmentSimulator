@@ -1,6 +1,7 @@
 package com.raphael.scheduling.wdedf;
 
 import com.raphael.domain.Message;
+import com.raphael.scheduling.DispatchGate;
 import com.raphael.scheduling.SchedulingPolicy;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,6 +74,19 @@ public final class WdedfScheduler implements SchedulingPolicy {
   private final Map<String, WdedfQueue> queues = new HashMap<>();
   private final PriorityQueue<Candidate> active = new PriorityQueue<>(ORDER);
   private final BlockedList blocked = new BlockedList();
+
+  /** v0.4 예산 게이트. {@code null} 이면 v0.3 과 동일하게 동작한다. */
+  private final DispatchGate gate;
+
+  /** 게이트가 닫혀 heap 에서 잠시 빠진 ACTIVE 큐 (메시지는 꺼내지 않는다). 재개 시각 순. */
+  private record Parked(long reopen, int queueIndex, WdedfQueue queue) {
+  }
+
+  private final PriorityQueue<Parked> parked = new PriorityQueue<>(
+      (a, b) -> a.reopen != b.reopen ? Long.compare(a.reopen, b.reopen)
+          : Integer.compare(a.queueIndex, b.queueIndex));
+  private long budgetParks;
+  private long rejectedBudget;
   private final List<WdedfQueue> waiting = new ArrayList<>();
 
   /** 현재 전역 서비스 라운드 번호 (1 부터). */
@@ -121,6 +135,20 @@ public final class WdedfScheduler implements SchedulingPolicy {
       DepartureTimePolicy departurePolicy,
       Function<Message, String> classifier,
       WdedfConfig config) {
+    this(quanta, departurePolicy, classifier, config, null);
+  }
+
+  /**
+   * v0.4: {@code gate} 가 있으면 큐 head 가 게이트를 통과할 때만 선택·차입한다. 게이트 확인은 메시지를
+   * 꺼내거나 deficit 을 소비하기 전에 한다. 막힌 ACTIVE 큐는 heap 에서 빠져 재개 시각까지 주차된다.
+   */
+  public WdedfScheduler(
+      Map<String, Long> quanta,
+      DepartureTimePolicy departurePolicy,
+      Function<Message, String> classifier,
+      WdedfConfig config,
+      DispatchGate gate) {
+    this.gate = gate;
     if (quanta.isEmpty()) {
       throw new IllegalArgumentException("At least one queue is required");
     }
@@ -171,8 +199,11 @@ public final class WdedfScheduler implements SchedulingPolicy {
     if (pending == 0) {
       throw new IllegalStateException("selectNext called on an empty WDEDF scheduler");
     }
+    if (gate != null && nextEligibleTime(now) != now) {
+      throw new IllegalStateException("selectNext called while no queue passes the gate");
+    }
     if (active.isEmpty()) {
-      startNewRound();
+      startNewRound(now);
     }
     maxActive = Math.max(maxActive, active.size());
     maxBlocked = Math.max(maxBlocked, blocked.size());
@@ -180,7 +211,7 @@ public final class WdedfScheduler implements SchedulingPolicy {
     Candidate top = active.peek();
     candidateExaminations++;
     if (!blocked.isEmpty()) {
-      Message borrowed = tryBorrow(top.departure());
+      Message borrowed = tryBorrow(top.departure(), now);
       if (borrowed != null) {
         return borrowed;
       }
@@ -190,6 +221,54 @@ public final class WdedfScheduler implements SchedulingPolicy {
     Message message = dequeueFrom(top.queue());
     updateQueueStatus(top.queue());
     return message;
+  }
+
+  /**
+   * 게이트가 없으면 대기 메시지가 있는 한 {@code now}. 게이트가 있으면 (1) 재개 시각이 지난 주차 큐를
+   * heap 에 되돌리고, (2) heap top 이 막혀 있으면 주차시키며, (3) heap 이 비면 게이트를 통과하는
+   * BLOCKED 큐가 있을 때만 라운드를 넘긴다. 아무도 통과하지 못하면 라운드를 넘기지 않고 가장 이른
+   * 재개 시각을 돌려준다 — 시간이 멈춘 채 quantum 이 계속 쌓이는 일이 없다. 반복 횟수는 라운드마다
+   * 최소 한 BLOCKED 큐가 ACTIVE 가 되므로 BLOCKED 큐 수로 제한된다.
+   */
+  @Override
+  public long nextEligibleTime(long now) {
+    if (pending == 0) {
+      return Long.MAX_VALUE;
+    }
+    if (gate == null) {
+      return now;
+    }
+    while (!parked.isEmpty() && parked.peek().reopen() <= now) {
+      WdedfQueue queue = parked.poll().queue();
+      queue.parked = false;
+      offer(queue);
+    }
+    while (true) {
+      while (!active.isEmpty()) {
+        Candidate top = active.peek();
+        long reopen = gate.reopenTime(top.queue().headMessage(), now);
+        if (reopen <= now) {
+          return now;
+        }
+        active.poll();
+        heapPolls++;
+        top.queue().parked = true;
+        parked.add(new Parked(reopen, top.queue().index, top.queue()));
+        budgetParks++;
+      }
+      long earliestParked = parked.isEmpty() ? Long.MAX_VALUE : parked.peek().reopen();
+      if (blocked.isEmpty()) {
+        return earliestParked;
+      }
+      long blockedReopen = Long.MAX_VALUE;
+      for (WdedfQueue q = blocked.first(); q != null; q = q.nextBlocked) {
+        blockedReopen = Math.min(blockedReopen, gate.reopenTime(q.headMessage(), now));
+      }
+      if (blockedReopen > now) {
+        return Math.min(earliestParked, blockedReopen);
+      }
+      startNewRound(now);
+    }
   }
 
   @Override
@@ -232,6 +311,8 @@ public final class WdedfScheduler implements SchedulingPolicy {
     d.put("borrowRejectedNotMoreUrgent", rejectedNotMoreUrgent);
     d.put("borrowRejectedPq", rejectedPq);
     d.put("borrowRejectedPdc", rejectedPdc);
+    d.put("borrowRejectedBudget", rejectedBudget);
+    d.put("budgetParks", budgetParks);
     d.put("pqPerRound", preemptiveQuantum);
     d.put("pqGranted", pqGranted);
     d.put("debtEvents", debtEvents);
@@ -260,7 +341,7 @@ public final class WdedfScheduler implements SchedulingPolicy {
    *
    * @return 차입으로 보낸 메시지, 거절되면 {@code null} (token 은 한 칸 진행)
    */
-  private Message tryBorrow(long activeHeadDeparture) {
+  private Message tryBorrow(long activeHeadDeparture, long now) {
     borrowAttempts++;
     candidateExaminations++;
     WdedfQueue candidate = blocked.tokenQueue();
@@ -272,6 +353,8 @@ public final class WdedfScheduler implements SchedulingPolicy {
       rejectedPq++;
     } else if (cost > pdc) {
       rejectedPdc++;
+    } else if (gate != null && gate.reopenTime(candidate.headMessage(), now) > now) {
+      rejectedBudget++;
     } else {
       blocked.removeTokenQueue();
       candidate.pdc = pdc - cost;
@@ -320,7 +403,7 @@ public final class WdedfScheduler implements SchedulingPolicy {
    * Algorithm 2 의 새 라운드 분기 (명세 §3). 즉시 보충 + 적격성 확인 (해석 A11), 모든 PDC 재설정
    * (해석 A12), 필요하면 빈 라운드 압축 (해석 A18).
    */
-  private void startNewRound() {
+  private void startNewRound(long now) {
     round++;
     rounds++;
     for (WdedfQueue queue : waiting) {
@@ -347,16 +430,42 @@ public final class WdedfScheduler implements SchedulingPolicy {
     if (!active.isEmpty()) {
       return;
     }
-    // 빈 라운드 압축: 각 BLOCKED 큐가 적격해지기까지 필요한 추가 라운드 수의 최솟값 K 만큼 진행.
+    // 빈 라운드 압축: 각 BLOCKED 큐가 적격해지기까지 필요한 추가 라운드 수 k_q 중, 게이트를 통과하는
+    // 큐들의 최솟값 K 만큼 진행한다 (게이트가 없으면 모든 큐). 큐 q 는 min(K, k_q) 라운드분만 받는다:
+    // k_q < K 인 (게이트에 막힌) 큐는 k_q 번째 라운드에 ACTIVE 가 되어 그 뒤로는 보충받지 않기
+    // 때문이다. 게이트가 없으면 모든 k_q ≥ K 이므로 v0.3 과 같다.
     long minRounds = Long.MAX_VALUE;
+    long minAdmitted = Long.MAX_VALUE;
     for (WdedfQueue q = blocked.first(); q != null; q = q.nextBlocked) {
-      long shortfall = q.headCost() - q.deficit;
-      minRounds = Math.min(minRounds, (shortfall + q.quantum - 1) / q.quantum);
+      long needed = roundsNeeded(q);
+      minRounds = Math.min(minRounds, needed);
+      if (gate == null || gate.reopenTime(q.headMessage(), now) <= now) {
+        minAdmitted = Math.min(minAdmitted, needed);
+      }
     }
-    round += minRounds;
-    rounds += minRounds;
-    skippedRounds += minRounds;
-    replenishBlocked(minRounds);
+    long skip = minAdmitted == Long.MAX_VALUE ? minRounds : minAdmitted;
+    round += skip;
+    rounds += skip;
+    skippedRounds += skip;
+    WdedfQueue queue = blocked.first();
+    while (queue != null) {
+      WdedfQueue next = queue.nextBlocked;
+      long credited = Math.min(skip, roundsNeeded(queue));
+      grantQuantum(queue, credited);
+      quantumReplenishments += credited;
+      replenishmentSteps++;
+      if (queue.headCost() <= queue.deficit) {
+        blocked.unlink(queue);
+        transition(queue, QueueState.ACTIVE);
+        offer(queue);
+      }
+      queue = next;
+    }
+  }
+
+  private static long roundsNeeded(WdedfQueue q) {
+    long shortfall = q.headCost() - q.deficit;
+    return (shortfall + q.quantum - 1) / q.quantum;
   }
 
   /** 모든 BLOCKED 큐에 {@code roundsCredited × ω} 를 더하고, 적격해진 큐를 ACTIVE 로 옮긴다. */
@@ -464,6 +573,9 @@ public final class WdedfScheduler implements SchedulingPolicy {
       if (candidate.messageId() != candidate.queue().headMessage().id()) {
         throw new IllegalStateException("Stale candidate for " + candidate.queue().key);
       }
+    }
+    for (Parked p : parked) {
+      activeCount.merge(p.queue(), 1, Integer::sum);
     }
     Map<WdedfQueue, Integer> blockedCount = new HashMap<>();
     for (WdedfQueue q = blocked.first(); q != null; q = q.nextBlocked) {

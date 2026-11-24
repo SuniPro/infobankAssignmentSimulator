@@ -20,6 +20,7 @@ import java.util.Optional;
  * @param messageTypeGroups 메시지 유형별 확장 지표 (테넌트 무관)
  * @param tenantTypeGroups "테넌트/유형" 키의 확장 지표
  * @param schedulerDiagnostics 정책이 보고한 알고리즘 계수 (CPU 명령 수가 아님)
+ * @param serviceBudgetViolations 독립 감사로 확인한 테넌트 예산 초과 dispatch 수 (감사 꺼짐이면 0)
  */
 public record SimulationResult(
     String policyName,
@@ -32,7 +33,8 @@ public record SimulationResult(
     Map<String, GroupMetrics> tenantGroups,
     Map<String, GroupMetrics> messageTypeGroups,
     Map<String, GroupMetrics> tenantTypeGroups,
-    Map<String, Long> schedulerDiagnostics) {
+    Map<String, Long> schedulerDiagnostics,
+    long serviceBudgetViolations) {
 
   public SimulationResult {
     tenants = Collections.unmodifiableMap(new LinkedHashMap<>(tenants));

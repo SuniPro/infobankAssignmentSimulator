@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.ToLongFunction;
+import com.raphael.scheduling.budget.TokenBucket;
 
 /**
  * 시뮬레이션 1회 실행 동안 측정값을 누적한다. 수집만 담당하며, 불변 {@link SimulationResult} 를
@@ -54,6 +55,12 @@ public final class MetricsCollector {
   private long previousDispatchTime = -1;
   private int previousDispatchCost;
   private long windowTotalCost;
+
+  /** v0.4 테넌트 예산 감사: 스케줄러와 독립된 토큰 버킷으로 dispatch 를 재검사한다. */
+  private long auditRate;
+  private long auditBurst;
+  private final Map<String, TokenBucket> auditBuckets = new HashMap<>();
+  private long budgetViolations;
 
   /** v0.2 호환 생성자: MESSAGE_RATE, 배달 지연 0 으로 slack 계산, 논문 출발 지표 없음. */
   public MetricsCollector(
@@ -103,6 +110,15 @@ public final class MetricsCollector {
     }
   }
 
+  /**
+   * 테넌트 전역 예산 감사를 켠다. 각 dispatch 에서 테넌트별 독립 버킷 (초당 {@code rate}, 최대
+   * {@code burst} cost) 이 부족하면 위반으로 센다.
+   */
+  public void enableTenantBudgetAudit(long rate, long burst) {
+    this.auditRate = rate;
+    this.auditBurst = burst;
+  }
+
   public void onArrival(Message message, long now) {
     TenantState state = stateFor(message);
     state.group.received++;
@@ -133,6 +149,13 @@ public final class MetricsCollector {
       closeBacklogInterval(state, now);
     }
     auditCapacity(now, message.cost());
+    if (auditRate > 0) {
+      TokenBucket bucket = auditBuckets.computeIfAbsent(
+          message.tenantId(), t -> new TokenBucket(auditRate, auditBurst));
+      if (!bucket.consume(message.cost(), now)) {
+        budgetViolations++;
+      }
+    }
   }
 
   public void onDelivery(Message message, long now) {
@@ -216,7 +239,7 @@ public final class MetricsCollector {
     return new SimulationResult(
         policyName, virtualElapsed, perTenant, schedulerSelections, schedulerOperations,
         capacityViolations, fairness, tenantGroups, byType, tenantTypeGroups,
-        schedulerDiagnostics);
+        schedulerDiagnostics, budgetViolations);
   }
 
   private TenantState stateFor(Message message) {

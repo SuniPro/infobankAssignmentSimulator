@@ -25,7 +25,9 @@ import java.util.Set;
  *
  * <p>옵션은 모두 선택 사항이며 {@code --key=value} 형식이다.
  * <pre>
- *   --suite=all|history|paper|message|sweep  (기본값 all)
+ *   --suite=all|history|paper|message|sweep|v04  (기본값 all; v04 는 all 에 포함되지 않음)
+ *   --quick=true                 v04: warm-up 0, 측정 1 회, 축소 워크로드
+ *   --output-dir=results         v04: CSV·JSON 결과 상위 디렉터리 (실행마다 새 하위 디렉터리)
  *                                history: v0.2 S1–S4b FIFO/DWRR 보고서 + 같은 시나리오의 v0.3 arm
  *                                paper: 논문 검증 P1–P4, message: S5–S12, sweep: Λ 민감도
  *   --scenario=all|s1|s2|s3|s4   history 에서 실행할 v0.2 시나리오 (기본값 all)
@@ -48,7 +50,7 @@ import java.util.Set;
 public final class SimulatorApplication {
 
   private static final Set<String> KNOWN_OPTIONS = Set.of(
-      "suite", "scenario", "campaign", "tps", "otp-interval-ms", "otp-duration-s",
+      "suite", "quick", "output-dir", "scenario", "campaign", "tps", "otp-interval-ms", "otp-duration-s",
       "fairness-messages",
       "window-start-s", "window-end-s", "base-quantum", "warmup", "runs");
 
@@ -69,8 +71,26 @@ public final class SimulatorApplication {
         ScenarioGenerator.OTP_TENANT, ScenarioGenerator.CAMPAIGN_TENANT);
 
     String suite = options.getOrDefault("suite", "all").toLowerCase(Locale.ROOT);
-    if (!List.of("all", "history", "paper", "message", "sweep").contains(suite)) {
+    if (!List.of("all", "history", "paper", "message", "sweep", "v04").contains(suite)) {
       throw new IllegalArgumentException("Unknown suite " + suite);
+    }
+    if (suite.equals("v04")) {
+      boolean quick = Boolean.parseBoolean(options.getOrDefault("quick", "false"));
+      int warmup = quick ? 0 : intOption(options, "warmup", 1);
+      int runs = quick ? 1 : intOption(options, "runs", 3);
+      int quantum = intOption(options, "base-quantum", 10);
+      Map<String, String> settings = new java.util.LinkedHashMap<>();
+      settings.put("quick", String.valueOf(quick));
+      settings.put("warmup_runs", String.valueOf(warmup));
+      settings.put("measured_runs", String.valueOf(runs));
+      settings.put("base_quantum", String.valueOf(quantum));
+      try {
+        new V04Suite(new ExperimentRunner(warmup, runs), System.out, quick, quantum).run(
+            java.nio.file.Path.of(options.getOrDefault("output-dir", "results")), settings);
+      } catch (java.io.IOException e) {
+        throw new java.io.UncheckedIOException(e);
+      }
+      return;
     }
     WdedfExperimentSuite v03 = new WdedfExperimentSuite(runner, System.out);
     if (suite.equals("all") || suite.equals("history")) {

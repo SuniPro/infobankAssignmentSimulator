@@ -12,5 +12,9 @@ package com.raphael.core;
 public enum EventType {
   DELIVERED,
   ARRIVAL,
-  DISPATCH_READY
+  DISPATCH_READY,
+  /** v0.4: 샤드(worker) 장애. 같은 시각의 dispatch 다음에 처리된다. */
+  RESOURCE_FAILURE,
+  /** v0.4: 샤드(worker) 복구. 처리 후 dispatch 를 다시 예약한다. */
+  RESOURCE_RECOVERY
 }
