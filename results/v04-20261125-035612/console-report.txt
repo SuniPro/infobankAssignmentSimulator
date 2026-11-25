@@ -1,0 +1,611 @@
+
+=== S2: Noisy neighbour (v0.1 baseline) ===
+Messages: 800,001 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+
+Message type ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max   slack min  lateness max  last delivery
+  E0 FIFO              800,000    800,000     0.000%         100.000%   888.987 s  1760.098 s  1777.876 s  1777.776 s  1822.124 s           n/a     1777.876 s
+  E1 DWRR              800,000    800,000     0.000%         100.000%   888.989 s  1760.100 s  1777.878 s  1777.778 s  1822.122 s           n/a     1777.878 s
+  E2 WDEDF-MESSAGE     800,000    800,000     0.000%         100.000%   888.989 s  1760.100 s  1777.878 s  1777.778 s  1822.122 s           n/a     1777.878 s
+  E3 E3-WDEDF-BUDGET   800,000    800,000     0.000%         100.000%  1111.072 s  2199.961 s  2222.183 s  2222.083 s  1377.817 s           n/a     2222.183 s
+  E4 E4-SHARD          800,000    800,000     0.000%         100.000%  1777.871 s  3520.093 s  3555.649 s  3555.549 s    44.351 s           n/a     3555.649 s
+  E5 E5-SHARD-AGING    800,000    800,000     0.000%         100.000%  1777.871 s  3520.093 s  3555.649 s  3555.549 s    44.351 s           n/a     3555.649 s
+
+Message type OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max    slack min  lateness max  last delivery
+  E0 FIFO                    1          1   100.000%         100.000%  1776.878 s  1776.878 s  1776.878 s  1776.778 s  -1716.878 s    1716.878 s     1777.878 s
+  E1 DWRR                    1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E2 WDEDF-MESSAGE           1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E3 E3-WDEDF-BUDGET         1          1     0.000%         100.000%  102.223 ms  102.223 ms  102.223 ms    2.223 ms     59.898 s           n/a        1.102 s
+  E4 E4-SHARD                1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E5 E5-SHARD-AGING          1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+
+Tenant/type A/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max   slack min  lateness max  last delivery
+  E0 FIFO              800,000    800,000     0.000%         100.000%   888.987 s  1760.098 s  1777.876 s  1777.776 s  1822.124 s           n/a     1777.876 s
+  E1 DWRR              800,000    800,000     0.000%         100.000%   888.989 s  1760.100 s  1777.878 s  1777.778 s  1822.122 s           n/a     1777.878 s
+  E2 WDEDF-MESSAGE     800,000    800,000     0.000%         100.000%   888.989 s  1760.100 s  1777.878 s  1777.778 s  1822.122 s           n/a     1777.878 s
+  E3 E3-WDEDF-BUDGET   800,000    800,000     0.000%         100.000%  1111.072 s  2199.961 s  2222.183 s  2222.083 s  1377.817 s           n/a     2222.183 s
+  E4 E4-SHARD          800,000    800,000     0.000%         100.000%  1777.871 s  3520.093 s  3555.649 s  3555.549 s    44.351 s           n/a     3555.649 s
+  E5 E5-SHARD-AGING    800,000    800,000     0.000%         100.000%  1777.871 s  3520.093 s  3555.649 s  3555.549 s    44.351 s           n/a     3555.649 s
+
+Tenant/type B/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max    slack min  lateness max  last delivery
+  E0 FIFO                    1          1   100.000%         100.000%  1776.878 s  1776.878 s  1776.878 s  1776.778 s  -1716.878 s    1716.878 s     1777.878 s
+  E1 DWRR                    1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E2 WDEDF-MESSAGE           1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E3 E3-WDEDF-BUDGET         1          1     0.000%         100.000%  102.223 ms  102.223 ms  102.223 ms    2.223 ms     59.898 s           n/a        1.102 s
+  E4 E4-SHARD                1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+  E5 E5-SHARD-AGING          1          1     0.000%           0.000%  100.000 ms  100.000 ms  100.000 ms    0.000 ms     59.900 s           n/a        1.100 s
+
+Totals and scheduler work (deterministic)
+  arm                 delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO               800,001        yes              0       1777.878 s   450.0     800,001     800,001          1.000
+  E1 DWRR               800,001        yes              0       1777.878 s   450.0     800,001     880,000          1.100
+  E2 WDEDF-MESSAGE      800,001        yes              0       1777.878 s   450.0     800,001   3,360,007          4.200
+  E3 E3-WDEDF-BUDGET    800,001        yes              0       2222.183 s   360.0     800,001   4,799,558          5.999
+  E4 E4-SHARD           800,001        yes              0       3555.649 s   225.0     800,001   3,360,003          4.200
+  E5 E5-SHARD-AGING     800,001        yes              0       3555.649 s   225.0     800,001   3,360,003          4.200
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING
+  rounds                             -        -            80,000              80,001       80,006             80,006
+  skippedRounds                      -        -                 0                   0            0                  0
+  activationGrants                   -        -                 2                   2            3                  3
+  waitingReactivations               -        -                 0                   0            0                  0
+  retainedCreditReused               -        -                 0                   0            0                  0
+  retainedCreditExpired              -        -                 9                   0            0                  0
+  debtForgiven                       -        -                 0                   0            0                  0
+  borrowAttempts                     -        -                 1                   0            0                  0
+  borrowSuccesses                    -        -                 0                   0            0                  0
+  borrowedCost                       -        -                 0                   0            0                  0
+  borrowRejectedNotMoreUrgent        -        -                 1                   0            0                  0
+  borrowRejectedPq                   -        -                 0                   0            0                  0
+  borrowRejectedPdc                  -        -                 0                   0            0                  0
+  pqPerRound                         -        -                 1                   2            8                  8
+  pqGranted                          -        -            80,000              80,001       80,006             80,006
+  debtEvents                         -        -                 0                   0            0                  0
+  minDeficit                         -        -                 0                   0            0                  0
+  maxDeficit                         -        -                10                  10           10                 10
+  maxActiveQueues                    -        -                 1                   1            1                  1
+  maxBlockedQueues                   -        -                 1                   0            0                  0
+  heapOffers                         -        -           800,001           1,519,778      800,001            800,001
+  heapPolls                          -        -           800,001           1,519,778      800,001            800,001
+  candidateExaminations              -        -           800,002             800,001      800,001            800,001
+  replenishmentSteps                 -        -            79,999              79,999       79,998             79,998
+  tokenAdvances                      -        -                 1                   0            0                  0
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                 runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                3     239.9 ms  220.9 ms  245.3 ms   10.2%           236.6 ms                 9.3 ms
+  E1 DWRR                3     240.5 ms  235.9 ms  252.5 ms    6.9%           234.2 ms                11.6 ms
+  E2 WDEDF-MESSAGE       3     278.2 ms  265.2 ms  285.1 ms    7.1%           272.6 ms                38.9 ms
+  E3 E3-WDEDF-BUDGET     3     374.1 ms  357.1 ms  375.7 ms    5.0%           366.5 ms                43.0 ms
+  E4 E4-SHARD            3     411.4 ms  406.7 ms  426.2 ms    4.7%           404.0 ms                90.0 ms
+  E5 E5-SHARD-AGING      3     425.0 ms  424.6 ms  435.5 ms    2.6%           415.0 ms                90.0 ms
+
+=== S3: Continuous OTP traffic (one OTP every 0.333 s for 1200 s) ===
+Messages: 803,604 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+
+Message type ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max   slack min  lateness max  last delivery
+  E0 FIFO              800,000    800,000     0.000%         100.000%   888.987 s  1760.098 s  1777.876 s  1777.776 s  1822.124 s           n/a     1777.876 s
+  E1 DWRR              800,000    800,000     0.000%         100.000%   894.953 s  1768.107 s  1785.884 s  1785.784 s  1814.116 s           n/a     1785.884 s
+  E2 WDEDF-MESSAGE     800,000    800,000     0.000%         100.000%   894.953 s  1768.107 s  1785.884 s  1785.784 s  1814.116 s           n/a     1785.884 s
+  E3 E3-WDEDF-BUDGET   800,000    800,000     0.000%         100.000%  1111.072 s  2199.961 s  2222.183 s  2222.083 s  1377.817 s           n/a     2222.183 s
+  E4 E4-SHARD          800,000    800,000     0.000%         100.000%  1778.960 s  3521.183 s  3556.738 s  3556.638 s    43.262 s           n/a     3556.738 s
+  E5 E5-SHARD-AGING    800,000    800,000     0.000%         100.000%  1778.960 s  3521.183 s  3556.738 s  3556.638 s    43.262 s           n/a     3556.738 s
+
+Message type OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max    slack min  lateness max  last delivery
+  E0 FIFO                3,604      3,604   100.000%         100.000%  1180.816 s  1764.970 s  1776.878 s  1776.778 s  -1716.878 s    1716.878 s     1785.884 s
+  E1 DWRR                3,604      3,604     0.000%          89.484%  111.000 ms  121.888 ms  122.111 ms   22.111 ms     59.878 s           n/a     1200.907 s
+  E2 WDEDF-MESSAGE       3,604      3,604     0.000%           0.000%  101.000 ms  102.111 ms  102.111 ms    2.111 ms     59.898 s           n/a     1200.900 s
+  E3 E3-WDEDF-BUDGET     3,604      3,604     0.000%           0.666%  100.889 ms  102.222 ms  102.223 ms    2.223 ms     59.898 s           n/a     1200.899 s
+  E4 E4-SHARD            3,604      3,604     0.000%           0.000%  101.001 ms  102.002 ms  102.002 ms    2.002 ms     59.898 s           n/a     1200.900 s
+  E5 E5-SHARD-AGING      3,604      3,604     0.000%           0.000%  101.001 ms  102.002 ms  102.002 ms    2.002 ms     59.898 s           n/a     1200.900 s
+
+Tenant/type A/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max   slack min  lateness max  last delivery
+  E0 FIFO              800,000    800,000     0.000%         100.000%   888.987 s  1760.098 s  1777.876 s  1777.776 s  1822.124 s           n/a     1777.876 s
+  E1 DWRR              800,000    800,000     0.000%         100.000%   894.953 s  1768.107 s  1785.884 s  1785.784 s  1814.116 s           n/a     1785.884 s
+  E2 WDEDF-MESSAGE     800,000    800,000     0.000%         100.000%   894.953 s  1768.107 s  1785.884 s  1785.784 s  1814.116 s           n/a     1785.884 s
+  E3 E3-WDEDF-BUDGET   800,000    800,000     0.000%         100.000%  1111.072 s  2199.961 s  2222.183 s  2222.083 s  1377.817 s           n/a     2222.183 s
+  E4 E4-SHARD          800,000    800,000     0.000%         100.000%  1778.960 s  3521.183 s  3556.738 s  3556.638 s    43.262 s           n/a     3556.738 s
+  E5 E5-SHARD-AGING    800,000    800,000     0.000%         100.000%  1778.960 s  3521.183 s  3556.738 s  3556.638 s    43.262 s           n/a     3556.738 s
+
+Tenant/type B/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max    slack min  lateness max  last delivery
+  E0 FIFO                3,604      3,604   100.000%         100.000%  1180.816 s  1764.970 s  1776.878 s  1776.778 s  -1716.878 s    1716.878 s     1785.884 s
+  E1 DWRR                3,604      3,604     0.000%          89.484%  111.000 ms  121.888 ms  122.111 ms   22.111 ms     59.878 s           n/a     1200.907 s
+  E2 WDEDF-MESSAGE       3,604      3,604     0.000%           0.000%  101.000 ms  102.111 ms  102.111 ms    2.111 ms     59.898 s           n/a     1200.900 s
+  E3 E3-WDEDF-BUDGET     3,604      3,604     0.000%           0.666%  100.889 ms  102.222 ms  102.223 ms    2.223 ms     59.898 s           n/a     1200.899 s
+  E4 E4-SHARD            3,604      3,604     0.000%           0.000%  101.001 ms  102.002 ms  102.002 ms    2.002 ms     59.898 s           n/a     1200.900 s
+  E5 E5-SHARD-AGING      3,604      3,604     0.000%           0.000%  101.001 ms  102.002 ms  102.002 ms    2.002 ms     59.898 s           n/a     1200.900 s
+
+Totals and scheduler work (deterministic)
+  arm                 delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO               803,604        yes              0       1785.884 s   450.0     803,604     803,604          1.000
+  E1 DWRR               803,604        yes              0       1785.884 s   450.0     803,604     883,603          1.100
+  E2 WDEDF-MESSAGE      803,604        yes              0       1785.884 s   450.0     803,604   3,382,345          4.209
+  E3 E3-WDEDF-BUDGET    803,604        yes              0       2222.183 s   361.6     803,604   4,799,467          5.972
+  E4 E4-SHARD           803,604        yes              0       3556.738 s   225.9     803,604   3,378,738          4.204
+  E5 E5-SHARD-AGING     803,604        yes              0       3556.738 s   225.9     803,604   3,378,738          4.204
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING
+  rounds                             -        -            80,000              80,361       80,366             80,366
+  skippedRounds                      -        -                 0                   0            0                  0
+  activationGrants                   -        -             3,605                   2            3                  3
+  waitingReactivations               -        -                 0               3,603        3,603              3,603
+  retainedCreditReused               -        -                 0              16,224       16,224             16,224
+  retainedCreditExpired              -        -            32,436                   0            0                  0
+  debtForgiven                       -        -                 0                   0            0                  0
+  borrowAttempts                     -        -               361                   0            0                  0
+  borrowSuccesses                    -        -                 0                   0            0                  0
+  borrowedCost                       -        -                 0                   0            0                  0
+  borrowRejectedNotMoreUrgent        -        -               361                   0            0                  0
+  borrowRejectedPq                   -        -                 0                   0            0                  0
+  borrowRejectedPdc                  -        -                 0                   0            0                  0
+  pqPerRound                         -        -                 1                   2            8                  8
+  pqGranted                          -        -            80,000              80,361       80,366             80,366
+  debtEvents                         -        -                 0                   0            0                  0
+  minDeficit                         -        -                 0                   0            0                  0
+  maxDeficit                         -        -                10                  10           10                 10
+  maxActiveQueues                    -        -                 2                   1            1                  1
+  maxBlockedQueues                   -        -                 1                   0            0                  0
+  heapOffers                         -        -           803,604           1,513,968      803,604            803,604
+  heapPolls                          -        -           803,604           1,513,968      803,604            803,604
+  candidateExaminations              -        -           803,965             803,604      803,604            803,604
+  replenishmentSteps                 -        -            79,999              80,359       80,358             80,358
+  tokenAdvances                      -        -               361                   0            0                  0
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                 runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                3     296.3 ms  254.5 ms  327.7 ms   24.7%           265.9 ms                12.5 ms
+  E1 DWRR                3     281.8 ms  270.3 ms  288.1 ms    6.3%           272.5 ms                13.6 ms
+  E2 WDEDF-MESSAGE       3     283.8 ms  274.2 ms  295.5 ms    7.5%           278.0 ms                26.1 ms
+  E3 E3-WDEDF-BUDGET     3     385.1 ms  368.3 ms  391.6 ms    6.0%           379.2 ms                44.1 ms
+  E4 E4-SHARD            3     453.0 ms  429.7 ms  453.8 ms    5.3%           444.4 ms                89.0 ms
+  E5 E5-SHARD-AGING      3     432.0 ms  430.1 ms  433.9 ms    0.9%           426.1 ms                88.0 ms
+
+=== S5: Intra-tenant HOL: tenant A's OTPs behind its own 100000 ads ===
+Messages: 200,120 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+
+Message type ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO              200,000    200,000     0.000%          99.999%  222.320 s  440.098 s  444.542 s  444.442 s  3155.458 s           n/a      444.542 s
+  E1 DWRR              200,000    200,000     0.000%          99.999%  222.320 s  440.098 s  444.542 s  444.442 s  3155.458 s           n/a      444.542 s
+  E2 WDEDF-MESSAGE     200,000    200,000     0.000%          99.999%  222.320 s  440.098 s  444.544 s  444.444 s  3155.456 s           n/a      444.544 s
+  E3 E3-WDEDF-BUDGET   200,000    200,000     0.000%          99.999%  222.587 s  440.364 s  444.809 s  444.709 s  3155.191 s           n/a      444.809 s
+  E4 E4-SHARD          200,000    200,000     0.000%          99.999%  296.749 s  587.118 s  593.220 s  593.120 s  3006.780 s           n/a      593.220 s
+  E5 E5-SHARD-AGING    200,000    200,000     0.000%          99.999%  296.749 s  587.118 s  593.220 s  593.120 s  3006.780 s           n/a      593.220 s
+
+Message type OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO                  120        120   100.000%         100.000%   383.678 s   442.547 s   443.544 s  443.444 s  -383.544 s     383.544 s      444.809 s
+  E1 DWRR                  120        120   100.000%         100.000%   383.678 s   442.547 s   443.544 s  443.444 s  -383.544 s     383.544 s      444.809 s
+  E2 WDEDF-MESSAGE         120        120   100.000%         100.000%   383.678 s   442.547 s   443.542 s  443.442 s  -383.542 s     383.542 s      444.809 s
+  E3 E3-WDEDF-BUDGET       120        120     0.000%          99.167%  104.444 ms  106.666 ms  106.666 ms   6.666 ms    59.893 s           n/a      120.104 s
+  E4 E4-SHARD              120        120     0.000%         100.000%  122.222 ms  131.111 ms  131.111 ms  31.111 ms    59.869 s           n/a      120.122 s
+  E5 E5-SHARD-AGING        120        120     0.000%         100.000%  122.222 ms  131.111 ms  131.111 ms  31.111 ms    59.869 s           n/a      120.122 s
+
+Tenant/type A/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO              100,000    100,000     0.000%          99.999%  222.318 s  440.096 s  444.540 s  444.440 s  3155.460 s           n/a      444.540 s
+  E1 DWRR              100,000    100,000     0.000%          99.998%  222.298 s  440.076 s  444.520 s  444.420 s  3155.480 s           n/a      444.520 s
+  E2 WDEDF-MESSAGE     100,000    100,000     0.000%          99.999%  222.318 s  440.096 s  444.540 s  444.440 s  3155.460 s           n/a      444.540 s
+  E3 E3-WDEDF-BUDGET   100,000    100,000     0.000%          99.999%  222.584 s  440.362 s  444.807 s  444.707 s  3155.193 s           n/a      444.807 s
+  E4 E4-SHARD          100,000    100,000     0.000%          99.999%  296.922 s  587.296 s  593.220 s  593.120 s  3006.780 s           n/a      593.220 s
+  E5 E5-SHARD-AGING    100,000    100,000     0.000%          99.999%  296.922 s  587.296 s  593.220 s  593.120 s  3006.780 s           n/a      593.220 s
+
+Tenant/type A/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO                  120        120   100.000%         100.000%   383.678 s   442.547 s   443.544 s  443.444 s  -383.544 s     383.544 s      444.809 s
+  E1 DWRR                  120        120   100.000%         100.000%   383.678 s   442.547 s   443.544 s  443.444 s  -383.544 s     383.544 s      444.809 s
+  E2 WDEDF-MESSAGE         120        120   100.000%         100.000%   383.678 s   442.547 s   443.542 s  443.442 s  -383.542 s     383.542 s      444.809 s
+  E3 E3-WDEDF-BUDGET       120        120     0.000%          99.167%  104.444 ms  106.666 ms  106.666 ms   6.666 ms    59.893 s           n/a      120.104 s
+  E4 E4-SHARD              120        120     0.000%         100.000%  122.222 ms  131.111 ms  131.111 ms  31.111 ms    59.869 s           n/a      120.122 s
+  E5 E5-SHARD-AGING        120        120     0.000%         100.000%  122.222 ms  131.111 ms  131.111 ms  31.111 ms    59.869 s           n/a      120.122 s
+
+Tenant/type B/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO              100,000    100,000     0.000%          99.999%  222.320 s  440.098 s  444.542 s  444.442 s  3155.458 s           n/a      444.542 s
+  E1 DWRR              100,000    100,000     0.000%         100.000%  222.320 s  440.098 s  444.542 s  444.442 s  3155.458 s           n/a      444.542 s
+  E2 WDEDF-MESSAGE     100,000    100,000     0.000%          99.999%  222.320 s  440.098 s  444.544 s  444.444 s  3155.456 s           n/a      444.544 s
+  E3 E3-WDEDF-BUDGET   100,000    100,000     0.000%          99.999%  222.587 s  440.364 s  444.809 s  444.709 s  3155.191 s           n/a      444.809 s
+  E4 E4-SHARD          100,000    100,000     0.000%          99.999%  296.571 s  586.938 s  593.211 s  593.111 s  3006.789 s           n/a      593.211 s
+  E5 E5-SHARD-AGING    100,000    100,000     0.000%          99.999%  296.571 s  586.938 s  593.211 s  593.111 s  3006.789 s           n/a      593.211 s
+
+Totals and scheduler work (deterministic)
+  arm                 delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO               200,120        yes              0        444.809 s   449.9     200,120     200,120          1.000
+  E1 DWRR               200,120        yes              0        444.809 s   449.9     200,120     220,130          1.100
+  E2 WDEDF-MESSAGE      200,120        yes              0        444.809 s   449.9     200,120     860,502          4.300
+  E3 E3-WDEDF-BUDGET    200,120        yes              0        444.809 s   449.9     200,120     860,618          4.301
+  E4 E4-SHARD           200,120        yes              0        593.220 s   337.3     200,120     847,286          4.234
+  E5 E5-SHARD-AGING     200,120        yes              0        593.220 s   337.3     200,120     847,286          4.234
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING
+  rounds                             -        -            10,012              10,012       16,683             16,683
+  skippedRounds                      -        -                 0                   0            0                  0
+  activationGrants                   -        -                 2                   3            6                  6
+  waitingReactivations               -        -                 0                 119          118                118
+  retainedCreditReused               -        -                 0                 540          540                540
+  retainedCreditExpired              -        -                 0                   0            0                  0
+  debtForgiven                       -        -                 0                   0            0                  0
+  borrowAttempts                     -        -            10,001               9,999        3,333              3,333
+  borrowSuccesses                    -        -                 1                   0            0                  0
+  borrowedCost                       -        -                 1                   0            0                  0
+  borrowRejectedNotMoreUrgent        -        -             9,999               9,999        3,333              3,333
+  borrowRejectedPq                   -        -                 1                   0            0                  0
+  borrowRejectedPdc                  -        -                 0                   0            0                  0
+  pqPerRound                         -        -                 1                   2            8                  8
+  pqGranted                          -        -            10,012              10,012       16,683             16,683
+  debtEvents                         -        -                 1                   0            0                  0
+  minDeficit                         -        -                -1                   0            0                  0
+  maxDeficit                         -        -                10                  10           10                 10
+  maxActiveQueues                    -        -                 2                   2            2                  2
+  maxBlockedQueues                   -        -                 1                   1            1                  1
+  heapOffers                         -        -           200,119             200,120      200,120            200,120
+  heapPolls                          -        -           200,119             200,120      200,120            200,120
+  candidateExaminations              -        -           210,121             210,119      203,453            203,453
+  replenishmentSteps                 -        -            20,010              20,009       20,008             20,008
+  tokenAdvances                      -        -            10,000               9,999        3,333              3,333
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                 runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                3      54.4 ms   53.0 ms   55.0 ms    3.7%            53.3 ms                 2.1 ms
+  E1 DWRR                3      56.2 ms   54.2 ms   57.2 ms    5.5%            54.9 ms                 2.9 ms
+  E2 WDEDF-MESSAGE       3      62.8 ms   62.1 ms   63.5 ms    2.3%            61.7 ms                 7.6 ms
+  E3 E3-WDEDF-BUDGET     3      71.8 ms   71.0 ms   73.8 ms    3.8%            70.7 ms                11.9 ms
+  E4 E4-SHARD            3      94.6 ms   94.0 ms   94.8 ms    0.8%            93.3 ms                19.9 ms
+  E5 E5-SHARD-AGING      3      95.8 ms   95.5 ms   98.7 ms    3.3%            94.7 ms                20.9 ms
+
+=== S12-load1.0: Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog ===
+Messages: 203,775 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+
+Message type ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO              150,000    150,000     0.000%          99.996%  166.764 s  330.098 s  333.431 s  333.331 s  3266.569 s           n/a      333.431 s
+  E1 DWRR              150,000    150,000     0.000%          99.996%  286.264 s  449.598 s  452.931 s  452.831 s  3147.069 s           n/a      452.931 s
+  E2 WDEDF-MESSAGE     150,000    150,000     0.000%          99.997%  286.264 s  449.598 s  452.931 s  452.831 s  3147.069 s           n/a      452.931 s
+  E3 E3-WDEDF-BUDGET   150,000    150,000     0.000%          99.997%  238.191 s  462.252 s  466.419 s  466.319 s  3133.581 s           n/a      466.419 s
+  E4 E4-SHARD          150,000    150,000     0.000%          99.998%  382.287 s  708.954 s  715.620 s  715.520 s  2884.380 s           n/a      715.620 s
+  E5 E5-SHARD-AGING    150,000    150,000     0.000%          99.998%  382.287 s  708.954 s  715.620 s  715.520 s  2884.380 s           n/a      715.620 s
+
+Message type OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               53,775     53,775   100.000%         100.000%  333.159 s  333.455 s  333.523 s  333.423 s  -328.523 s     328.523 s      452.931 s
+  E1 DWRR               53,775     53,775    78.166%          99.980%   11.802 s   24.142 s   24.626 s   24.526 s   -19.626 s      19.626 s      143.798 s
+  E2 WDEDF-MESSAGE      53,775     53,775    78.007%          99.896%   11.768 s   24.057 s   24.576 s   24.476 s   -19.576 s      19.576 s      143.753 s
+  E3 E3-WDEDF-BUDGET    53,775     53,775    98.209%          99.993%  139.375 s  276.114 s  278.509 s  278.409 s  -273.509 s     273.509 s      398.433 s
+  E4 E4-SHARD           53,775     53,775    75.373%          90.977%   34.788 s  165.549 s  167.917 s  167.817 s  -162.917 s     162.917 s      287.836 s
+  E5 E5-SHARD-AGING     53,775     53,775    75.373%          90.977%   34.788 s  165.549 s  167.917 s  167.817 s  -162.917 s     162.917 s      287.836 s
+
+Tenant/type ADS/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO              150,000    150,000     0.000%          99.996%  166.764 s  330.098 s  333.431 s  333.331 s  3266.569 s           n/a      333.431 s
+  E1 DWRR              150,000    150,000     0.000%          99.996%  286.264 s  449.598 s  452.931 s  452.831 s  3147.069 s           n/a      452.931 s
+  E2 WDEDF-MESSAGE     150,000    150,000     0.000%          99.997%  286.264 s  449.598 s  452.931 s  452.831 s  3147.069 s           n/a      452.931 s
+  E3 E3-WDEDF-BUDGET   150,000    150,000     0.000%          99.997%  238.191 s  462.252 s  466.419 s  466.319 s  3133.581 s           n/a      466.419 s
+  E4 E4-SHARD          150,000    150,000     0.000%          99.998%  382.287 s  708.954 s  715.620 s  715.520 s  2884.380 s           n/a      715.620 s
+  E5 E5-SHARD-AGING    150,000    150,000     0.000%          99.998%  382.287 s  708.954 s  715.620 s  715.520 s  2884.380 s           n/a      715.620 s
+
+Tenant/type OTP0/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               10,584     10,584   100.000%         100.000%  333.158 s  333.457 s  333.521 s  333.421 s  -328.521 s     328.521 s      452.907 s
+  E1 DWRR               10,584     10,584    74.953%          99.972%   10.241 s   20.858 s   21.300 s   21.200 s   -16.300 s      16.300 s      141.262 s
+  E2 WDEDF-MESSAGE      10,584     10,584    74.820%          99.924%   10.219 s   20.836 s   21.278 s   21.178 s   -16.278 s      16.278 s      141.240 s
+  E3 E3-WDEDF-BUDGET    10,584     10,584    98.205%          99.991%  135.905 s  269.260 s  272.334 s  272.234 s  -267.334 s     267.334 s      392.300 s
+  E4 E4-SHARD           10,584     10,584    97.166%          99.972%   82.333 s  161.973 s  163.903 s  163.803 s  -158.903 s     158.903 s      283.871 s
+  E5 E5-SHARD-AGING     10,584     10,584    97.166%          99.972%   82.333 s  161.973 s  163.903 s  163.803 s  -158.903 s     158.903 s      283.871 s
+
+Tenant/type OTP1/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               10,859     10,859   100.000%         100.000%  333.158 s  333.455 s  333.522 s  333.422 s  -328.522 s     328.522 s      452.931 s
+  E1 DWRR               10,859     10,859    80.164%         100.000%   12.860 s   24.191 s   24.354 s   24.254 s   -19.354 s      19.354 s      143.738 s
+  E2 WDEDF-MESSAGE      10,859     10,859    79.888%          99.945%   12.711 s   24.104 s   24.283 s   24.183 s   -19.283 s      19.283 s      143.667 s
+  E3 E3-WDEDF-BUDGET    10,859     10,859    98.232%         100.000%  141.238 s  277.570 s  278.299 s  278.199 s  -273.299 s     273.299 s      398.293 s
+  E4 E4-SHARD           10,859     10,859    97.210%         100.000%   86.439 s  167.599 s  167.917 s  167.817 s  -162.917 s     162.917 s      287.836 s
+  E5 E5-SHARD-AGING     10,859     10,859    97.210%         100.000%   86.439 s  167.599 s  167.917 s  167.817 s  -162.917 s     162.917 s      287.836 s
+
+Tenant/type OTP2/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               10,680     10,680   100.000%         100.000%  333.158 s  333.450 s  333.523 s  333.423 s  -328.523 s     328.523 s      452.924 s
+  E1 DWRR               10,680     10,680    77.154%          99.981%   11.303 s   22.390 s   22.505 s   22.405 s   -17.505 s      17.505 s      142.433 s
+  E2 WDEDF-MESSAGE      10,680     10,680    76.966%          99.775%   11.265 s   22.357 s   22.480 s   22.380 s   -17.480 s      17.480 s      142.447 s
+  E3 E3-WDEDF-BUDGET    10,680     10,680    98.127%          99.991%  137.632 s  272.948 s  275.030 s  274.930 s  -270.030 s     270.030 s      394.967 s
+  E4 E4-SHARD           10,680     10,680    86.358%         100.000%   19.943 s   39.325 s   39.874 s   39.774 s   -34.874 s      34.874 s      159.851 s
+  E5 E5-SHARD-AGING     10,680     10,680    86.358%         100.000%   19.943 s   39.325 s   39.874 s   39.774 s   -34.874 s      34.874 s      159.851 s
+
+Tenant/type OTP3/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max   queue max   slack min  lateness max  last delivery
+  E0 FIFO               10,882     10,882   100.000%         100.000%   333.160 s   333.454 s   333.522 s   333.422 s  -328.522 s     328.522 s      452.927 s
+  E1 DWRR               10,882     10,882    81.483%          99.954%    12.533 s    24.499 s    24.626 s    24.526 s   -19.626 s      19.626 s      143.798 s
+  E2 WDEDF-MESSAGE      10,882     10,882    81.327%          99.899%    12.542 s    24.437 s    24.576 s    24.476 s   -19.576 s      19.576 s      143.753 s
+  E3 E3-WDEDF-BUDGET    10,882     10,882    98.254%          99.982%   141.637 s   278.108 s   278.509 s   278.409 s  -273.509 s     273.509 s      398.433 s
+  E4 E4-SHARD           10,882     10,882     0.000%          55.449%  113.397 ms  184.854 ms  225.884 ms  125.884 ms     4.774 s           n/a      120.105 s
+  E5 E5-SHARD-AGING     10,882     10,882     0.000%          55.449%  113.397 ms  184.854 ms  225.884 ms  125.884 ms     4.774 s           n/a      120.105 s
+
+Tenant/type OTP4/OTP
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               10,770     10,770   100.000%         100.000%  333.158 s  333.457 s  333.523 s  333.423 s  -328.523 s     328.523 s      452.918 s
+  E1 DWRR               10,770     10,770    76.964%          99.991%   12.376 s   23.103 s   23.214 s   23.114 s   -18.214 s      18.214 s      143.131 s
+  E2 WDEDF-MESSAGE      10,770     10,770    76.917%          99.935%   12.340 s   23.082 s   23.192 s   23.092 s   -18.192 s      18.192 s      143.069 s
+  E3 E3-WDEDF-BUDGET    10,770     10,770    98.227%         100.000%  140.088 s  275.533 s  277.025 s  276.925 s  -272.025 s     272.025 s      396.967 s
+  E4 E4-SHARD           10,770     10,770    97.205%          99.991%   85.646 s  166.228 s  167.121 s  167.021 s  -162.121 s     162.121 s      287.071 s
+  E5 E5-SHARD-AGING     10,770     10,770    97.205%          99.991%   85.646 s  166.228 s  167.121 s  167.021 s  -162.121 s     162.121 s      287.071 s
+
+Service in window [10.000 s, 120.000 s), short windows of 1.000 s (cost units; lag in cost units)
+  weight shares: ADS=16.667% OTP0=16.667% OTP1=16.667% OTP2=16.667% OTP3=16.667% OTP4=16.667%
+  arm                 Jain count  Jain cost  short Jain min  short Jain mean     max gap  max lag behind  ADS share (w1)  OTP0 share (w1)  OTP1 share (w1)  OTP2 share (w1)  OTP3 share (w1)  OTP4 share (w1)  ADS /s  OTP0 /s  OTP1 /s  OTP2 /s  OTP3 /s  OTP4 /s
+  E0 FIFO               0.166667   0.166667        0.166667         0.166667   110.000 s          8250.0        100.000%           0.000%           0.000%           0.000%           0.000%           0.000%   450.0      0.0      0.0      0.0      0.0      0.0
+  E1 DWRR               1.000000   1.000000        0.995575         0.995575  113.334 ms             8.3         16.667%          16.667%          16.667%          16.667%          16.667%          16.667%    75.0     75.0     75.0     75.0     75.0     75.0
+  E2 WDEDF-MESSAGE      1.000000   1.000000        0.993290         0.995754  113.334 ms            12.3         16.667%          16.667%          16.648%          16.667%          16.685%          16.667%    75.0     75.0     74.9     75.0     75.1     75.0
+  E3 E3-WDEDF-BUDGET    0.328084   0.328084        0.327714         0.327878  304.445 ms          5286.7         70.000%           5.992%           6.000%           6.008%           6.002%           5.998%   315.0     27.0     27.0     27.0     27.0     27.0
+  E4 E4-SHARD                n/a        n/a             n/a              n/a  197.593 ms          3707.0         36.700%           8.722%           8.744%          15.728%          21.356%           8.750%   155.7     37.0     37.1     66.7     90.6     37.1
+  E5 E5-SHARD-AGING          n/a        n/a             n/a              n/a  197.593 ms          3707.0         36.700%           8.722%           8.744%          15.728%          21.356%           8.750%   155.7     37.0     37.1     66.7     90.6     37.1
+  (Jain/lag 'n/a' or not meaningful where a tenant was not backlogged for the whole window; shares are still reported)
+
+Totals and scheduler work (deterministic)
+  arm                 delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO               203,775        yes              0        452.931 s   449.9     203,775     203,775          1.000
+  E1 DWRR               203,775        yes              0        452.931 s   449.9     203,775     224,140          1.100
+  E2 WDEDF-MESSAGE      203,775        yes              0        452.931 s   449.9     203,775     958,579          4.704
+  E3 E3-WDEDF-BUDGET    203,775        yes              0        466.419 s   436.9     203,775     980,525          4.812
+  E4 E4-SHARD           203,775        yes              0        715.620 s   284.8     203,775     898,108          4.407
+  E5 E5-SHARD-AGING     203,775        yes              0        715.620 s   284.8     203,775     898,108          4.407
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING
+  rounds                             -        -            15,000              16,089       18,246             18,246
+  skippedRounds                      -        -                 0                   0            0                  0
+  activationGrants                   -        -                13                   6            8                  8
+  waitingReactivations               -        -                45                   3        4,141              4,141
+  retainedCreditReused               -        -               231                  27       18,576             18,576
+  retainedCreditExpired              -        -                27                   7            6                  6
+  debtForgiven                       -        -                 2                   0            0                  0
+  borrowAttempts                     -        -            56,232              45,369       23,894             23,894
+  borrowSuccesses                    -        -             3,263               3,258        3,225              3,225
+  borrowedCost                       -        -             3,263               3,258        3,225              3,225
+  borrowRejectedNotMoreUrgent        -        -               752                 750          564                564
+  borrowRejectedPq                   -        -            52,217              41,361       20,105             20,105
+  borrowRejectedPdc                  -        -                 0                   0            0                  0
+  pqPerRound                         -        -                 3                   6           24                 24
+  pqGranted                          -        -            45,000              48,267       54,738             54,738
+  debtEvents                         -        -             3,263               3,258        3,225              3,225
+  minDeficit                         -        -                -3                  -3           -3                 -3
+  maxDeficit                         -        -                10                  10           10                 10
+  maxActiveQueues                    -        -                 6                   5            3                  3
+  maxBlockedQueues                   -        -                 5                   4            2                  2
+  heapOffers                         -        -           200,512             222,368      200,550            200,550
+  heapPolls                          -        -           200,512             222,368      200,550            200,550
+  candidateExaminations              -        -           260,007             249,144      227,669            227,669
+  replenishmentSteps                 -        -            20,367              20,373       20,372             20,372
+  tokenAdvances                      -        -            52,969              42,111       20,669             20,669
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                 runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                3      80.8 ms   79.9 ms   82.8 ms    3.6%            78.5 ms                 2.1 ms
+  E1 DWRR                3      72.7 ms   71.9 ms   73.4 ms    2.0%            71.5 ms                 2.7 ms
+  E2 WDEDF-MESSAGE       3      79.0 ms   79.0 ms   81.6 ms    3.4%            77.5 ms                 8.5 ms
+  E3 E3-WDEDF-BUDGET     3      93.6 ms   93.4 ms  103.6 ms   11.0%            91.9 ms                18.3 ms
+  E4 E4-SHARD            3     116.5 ms  116.0 ms  116.7 ms    0.6%           115.3 ms                21.9 ms
+  E5 E5-SHARD-AGING      3     117.1 ms  116.5 ms  117.7 ms    1.0%           115.8 ms                22.8 ms
+
+=== S13: Prolonged waiting: L (24 h deadline, 30000 ads) vs S stream (300/s, 300 s deadline) ===
+Messages: 120,010 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+
+Message type ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max  slack min  lateness max  last delivery
+  E0 FIFO              120,010    120,010     0.000%          75.006%   22.327 s   65.878 s   66.767 s   66.667 s  233.233 s           n/a      300.100 s
+  E1 DWRR              120,010    120,010     0.000%          75.006%   14.924 s  128.076 s  133.409 s  133.309 s  266.546 s           n/a      300.100 s
+  E2 WDEDF-MESSAGE     120,010    120,010     0.000%          74.996%   14.918 s  128.100 s  133.433 s  133.333 s  266.558 s           n/a      300.100 s
+  E3 E3-WDEDF-BUDGET   120,010    120,010     0.000%          99.817%   20.537 s  128.100 s  133.433 s  133.333 s  266.558 s           n/a      300.100 s
+  E4 E4-SHARD          120,010    120,010     0.000%          99.998%  177.894 s  256.102 s  266.769 s  266.669 s   66.524 s           n/a      533.471 s
+  E5 E5-SHARD-AGING    120,010    120,010     0.000%          99.998%  177.890 s  256.004 s  266.671 s  266.571 s   66.524 s           n/a      533.471 s
+
+Tenant/type L/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max    slack min  lateness max  last delivery
+  E0 FIFO               30,000     30,000     0.000%          99.993%   33.431 s   66.098 s   66.764 s   66.664 s  86333.236 s           n/a       66.764 s
+  E1 DWRR               30,000     30,000     0.000%          99.993%   66.742 s  132.076 s  133.409 s  133.309 s  86266.591 s           n/a      133.409 s
+  E2 WDEDF-MESSAGE      30,000     30,000     0.000%          99.997%   66.767 s  132.100 s  133.433 s  133.333 s  86266.567 s           n/a      133.433 s
+  E3 E3-WDEDF-BUDGET    30,000     30,000     0.000%          99.997%   66.767 s  132.100 s  133.433 s  133.333 s  86266.567 s           n/a      133.433 s
+  E4 E4-SHARD           30,000     30,000     0.000%          99.997%  133.436 s  264.102 s  266.769 s  266.669 s  86133.231 s           n/a      266.769 s
+  E5 E5-SHARD-AGING     30,000     30,000     0.000%          99.993%  133.338 s  264.004 s  266.671 s  266.571 s  86133.329 s           n/a      266.671 s
+
+Tenant/type S/ADVERTISEMENT
+  arm                 received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max  slack min  lateness max  last delivery
+  E0 FIFO               90,010     90,010     0.000%          66.678%   16.776 s   65.767 s   66.767 s   66.667 s  233.233 s           n/a      300.100 s
+  E1 DWRR               90,010     90,010     0.000%          66.678%    8.446 s   32.949 s   33.454 s   33.354 s  266.546 s           n/a      300.100 s
+  E2 WDEDF-MESSAGE      90,010     90,010     0.000%          66.664%    8.434 s   32.937 s   33.442 s   33.342 s  266.558 s           n/a      300.100 s
+  E3 E3-WDEDF-BUDGET    90,010     90,010     0.000%          99.757%   16.684 s   33.015 s   33.442 s   33.342 s  266.558 s           n/a      300.100 s
+  E4 E4-SHARD           90,010     90,010     0.000%          99.998%  183.451 s  232.472 s  233.476 s  233.376 s   66.524 s           n/a      533.471 s
+  E5 E5-SHARD-AGING     90,010     90,010     0.000%         100.000%  183.451 s  232.472 s  233.476 s  233.376 s   66.524 s           n/a      533.471 s
+
+Totals and scheduler work (deterministic)
+  arm                 delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO               120,010        yes              0        300.100 s   399.9     120,010     120,010          1.000
+  E1 DWRR               120,010        yes              0        300.100 s   399.9     120,010     129,010          1.075
+  E2 WDEDF-MESSAGE      120,010        yes              0        300.100 s   399.9     120,010     591,034          4.925
+  E3 E3-WDEDF-BUDGET    120,010        yes              0        300.100 s   399.9     120,010     668,458          5.570
+  E4 E4-SHARD           120,010        yes              0        533.471 s   225.0     120,010     561,044          4.675
+  E5 E5-SHARD-AGING     120,010        yes              0        533.471 s   225.0     120,010     561,004          4.675
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING
+  rounds                             -        -             9,001               9,002        9,008              9,008
+  skippedRounds                      -        -                 0                   0            0                  0
+  activationGrants                   -        -                 2                   2            4                  4
+  waitingReactivations               -        -            30,007                 221            4                  0
+  retainedCreditReused               -        -           135,007                 974           33                  0
+  retainedCreditExpired              -        -                 0                   0            0                  0
+  debtForgiven                       -        -                 0                   0            0                  0
+  borrowAttempts                     -        -            32,993              32,993       32,999             32,978
+  borrowSuccesses                    -        -             3,000               3,000        3,000              2,998
+  borrowedCost                       -        -             3,000               3,000        3,000              2,998
+  borrowRejectedNotMoreUrgent        -        -                 0                   0            0                  1
+  borrowRejectedPq                   -        -            29,993              29,993       29,999             29,979
+  borrowRejectedPdc                  -        -                 0                   0            0                  0
+  pqPerRound                         -        -                 1                   2            8                  8
+  pqGranted                          -        -             9,001               9,002        9,008              9,008
+  debtEvents                         -        -             3,000               3,000        3,000              2,998
+  minDeficit                         -        -                -1                  -1           -1                 -1
+  maxDeficit                         -        -                10                  10           10                 10
+  maxActiveQueues                    -        -                 2                   2            2                  2
+  maxBlockedQueues                   -        -                 1                   1            1                  1
+  heapOffers                         -        -           117,010             170,615      117,010            117,012
+  heapPolls                          -        -           117,010             170,615      117,010            117,012
+  candidateExaminations              -        -           153,003             153,003      153,009            152,988
+  replenishmentSteps                 -        -            11,999              11,999       11,998             11,998
+  tokenAdvances                      -        -            29,993              29,993       29,999             29,980
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                 runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                3      49.4 ms   45.8 ms   64.6 ms   37.9%            49.1 ms                 1.0 ms
+  E1 DWRR                3      58.6 ms   58.0 ms   59.6 ms    2.8%            58.6 ms                 1.4 ms
+  E2 WDEDF-MESSAGE       3      66.2 ms   63.6 ms   76.2 ms   19.1%            65.7 ms                 3.9 ms
+  E3 E3-WDEDF-BUDGET     3      83.2 ms   81.6 ms   85.4 ms    4.6%            83.0 ms                 6.9 ms
+  E4 E4-SHARD            3      88.9 ms   88.8 ms   89.8 ms    1.1%            88.9 ms                14.7 ms
+  E5 E5-SHARD-AGING      3      89.5 ms   89.4 ms   89.8 ms    0.4%            89.5 ms                14.6 ms
+
+=== F1: Aggressor T00 (100000 ads) + 15 tenants with ads and OTPs (TTL 10 s) ===
+Messages: 104,950 | Service model: MESSAGE_RATE | Capacity: 450/s | Delivery delay: 100.000 ms
+  E0     FIFO           Shared FIFO
+  E1     DWRR           Tenant queues + DWRR (base quantum 10)
+  E2     WDEDF-MESSAGE  WDEDF, business dispatch target, Λ=5%
+  E3     E3-WDEDF-BUDGET WDEDF + tenant×type queues + Service Budget
+  E4     E4-SHARD       E3 + Shuffle Sharding
+  E5     E5-SHARD-AGING E4 + Aging
+  E4-F   E4-SHARD       E4 with shard 1 failure
+  E5-F   E5-SHARD-AGING E5 with shard 1 failure
+
+Message type ADVERTISEMENT
+  arm                  received  delivered  miss rate  paper T̂_D viol    E2E p50    E2E p99    E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO               104,500    104,500     0.000%          99.985%  116.209 s  229.998 s  232.320 s  232.220 s  3367.680 s           n/a      232.320 s
+  E1 DWRR               104,500    104,500     0.000%          99.985%  117.209 s  230.998 s  233.320 s  233.220 s  3366.680 s           n/a      233.320 s
+  E2 WDEDF-MESSAGE      104,500    104,500     0.000%          99.985%  117.209 s  230.998 s  233.320 s  233.220 s  3366.680 s           n/a      233.320 s
+  E3 E3-WDEDF-BUDGET    104,500    104,500     0.000%          99.985%  142.600 s  284.836 s  287.739 s  287.639 s  3312.261 s           n/a      287.739 s
+  E4 E4-SHARD           104,500    104,500     0.000%          99.986%  218.302 s  445.882 s  450.524 s  450.424 s  3149.476 s           n/a      450.524 s
+  E5 E5-SHARD-AGING     104,500    104,500     0.000%          99.986%  218.302 s  445.882 s  450.524 s  450.424 s  3149.476 s           n/a      450.524 s
+  E4-F E4-SHARD         104,500    104,500     0.000%          99.986%  233.253 s  470.729 s  480.018 s  479.918 s  3119.982 s           n/a      480.018 s
+  E5-F E5-SHARD-AGING   104,500    104,500     0.000%          99.986%  233.253 s  470.729 s  480.018 s  479.918 s  3119.982 s           n/a      480.018 s
+
+Message type OTP
+  arm                  received  delivered  miss rate  paper T̂_D viol     E2E p50     E2E p99     E2E max  queue max   slack min  lateness max  last delivery
+  E0 FIFO                   450        450   100.000%         100.000%   201.722 s   230.831 s   231.222 s  231.122 s  -221.222 s     221.222 s      233.320 s
+  E1 DWRR                   450        450     0.000%          16.667%  111.111 ms     9.333 s     9.689 s    9.589 s  311.112 ms           n/a       60.609 s
+  E2 WDEDF-MESSAGE          450        450     0.000%          16.667%  100.000 ms     9.289 s     9.484 s    9.384 s  515.556 ms           n/a       60.600 s
+  E3 E3-WDEDF-BUDGET        450        450     0.000%           0.000%  102.222 ms  106.666 ms  106.666 ms   6.666 ms     9.893 s           n/a       60.602 s
+  E4 E4-SHARD               450        450     0.000%           5.111%  102.222 ms  133.751 ms  135.555 ms  35.555 ms     9.864 s           n/a       60.600 s
+  E5 E5-SHARD-AGING         450        450     0.000%           5.111%  102.222 ms  133.751 ms  135.555 ms  35.555 ms     9.864 s           n/a       60.600 s
+  E4-F E4-SHARD             450        450     0.000%           4.444%  102.221 ms  133.708 ms  133.708 ms  33.708 ms     9.866 s           n/a       60.600 s
+  E5-F E5-SHARD-AGING       450        450     0.000%           4.444%  102.221 ms  133.708 ms  133.708 ms  33.708 ms     9.866 s           n/a       60.600 s
+
+Per-tenant spread for ADVERTISEMENT
+  arm                  tenants  tenants with miss  min tenant miss  max tenant miss  max tenant E2E p99
+  E0 FIFO                   16                  0           0.000%           0.000%           232.313 s
+  E1 DWRR                   16                  0           0.000%           0.000%           231.098 s
+  E2 WDEDF-MESSAGE          16                  0           0.000%           0.000%           231.098 s
+  E3 E3-WDEDF-BUDGET        16                  0           0.000%           0.000%           284.961 s
+  E4 E4-SHARD               16                  0           0.000%           0.000%           446.080 s
+  E5 E5-SHARD-AGING         16                  0           0.000%           0.000%           446.080 s
+  E4-F E4-SHARD             16                  0           0.000%           0.000%           471.129 s
+  E5-F E5-SHARD-AGING       16                  0           0.000%           0.000%           471.129 s
+
+Per-tenant spread for OTP
+  arm                  tenants  tenants with miss  min tenant miss  max tenant miss  max tenant E2E p99
+  E0 FIFO                   15                 15         100.000%         100.000%           231.222 s
+  E1 DWRR                   15                  0           0.000%           0.000%             9.689 s
+  E2 WDEDF-MESSAGE          15                  0           0.000%           0.000%             9.484 s
+  E3 E3-WDEDF-BUDGET        15                  0           0.000%           0.000%          106.666 ms
+  E4 E4-SHARD               15                  0           0.000%           0.000%          135.555 ms
+  E5 E5-SHARD-AGING         15                  0           0.000%           0.000%          135.555 ms
+  E4-F E4-SHARD             15                  0           0.000%           0.000%          133.708 ms
+  E5-F E5-SHARD-AGING       15                  0           0.000%           0.000%          133.708 ms
+
+Totals and scheduler work (deterministic)
+  arm                  delivered  conserved  capacity viol  virtual elapsed  cost/s  selections  operations  ops/selection
+  E0 FIFO                104,950        yes              0        233.320 s   449.8     104,950     104,950          1.000
+  E1 DWRR                104,950        yes              0        233.320 s   449.8     104,950     115,399          1.100
+  E2 WDEDF-MESSAGE       104,950        yes              0        233.320 s   449.8     104,950     450,547          4.293
+  E3 E3-WDEDF-BUDGET     104,950        yes              0        287.739 s   364.7     104,950     626,871          5.973
+  E4 E4-SHARD            104,950        yes              0        450.524 s   233.0     104,950     448,793          4.276
+  E5 E5-SHARD-AGING      104,950        yes              0        450.524 s   233.0     104,950     448,793          4.276
+  E4-F E4-SHARD          104,950        yes              0        480.018 s   218.6     104,950     448,793          4.276
+  E5-F E5-SHARD-AGING    104,950        yes              0        480.018 s   218.6     104,950     448,793          4.276
+
+Scheduler diagnostics (algorithmic counts, not CPU instructions)
+  diagnostic                   E0 FIFO  E1 DWRR  E2 WDEDF-MESSAGE  E3 E3-WDEDF-BUDGET  E4 E4-SHARD  E5 E5-SHARD-AGING  E4-F E4-SHARD  E5-F E5-SHARD-AGING
+  rounds                             -        -            10,000              10,003       10,070             10,070         10,070               10,070
+  skippedRounds                      -        -                 0                   0            0                  0              0                    0
+  activationGrants                   -        -               391                  59           64                 64             62                   62
+  waitingReactivations               -        -                 0                 407          407                407            409                  409
+  retainedCreditReused               -        -                 0               2,025        2,075              2,075          2,054                2,054
+  retainedCreditExpired              -        -             3,445                   0            3                  3              9                    9
+  debtForgiven                       -        -                 5                   0            0                  0              0                    0
+  borrowAttempts                     -        -             4,547               4,500        3,810              3,810          3,810                3,810
+  borrowSuccesses                    -        -                 8                   0            0                  0              0                    0
+  borrowedCost                       -        -                 8                   0            0                  0              0                    0
+  borrowRejectedNotMoreUrgent        -        -             4,433               4,500        3,810              3,810          3,810                3,810
+  borrowRejectedPq                   -        -               106                   0            0                  0              0                    0
+  borrowRejectedPdc                  -        -                 0                   0            0                  0              0                    0
+  pqPerRound                         -        -                 8                  16           64                 64             64                   64
+  pqGranted                          -        -            80,000              80,024       80,560             80,560         80,560               80,560
+  debtEvents                         -        -                 8                   0            0                  0              0                    0
+  minDeficit                         -        -                -5                   0            0                  0              0                    0
+  maxDeficit                         -        -                10                  10           10                 10             10                   10
+  maxActiveQueues                    -        -                16                  16            7                  7              7                    7
+  maxBlockedQueues                   -        -                15                  15            6                  6              6                    6
+  heapOffers                         -        -           104,942             193,295      104,950            104,950        104,950              104,950
+  heapPolls                          -        -           104,942             193,295      104,950            104,950        104,950              104,950
+  candidateExaminations              -        -           109,497             109,450      108,760            108,760        108,760              108,760
+  replenishmentSteps                 -        -            10,448              10,436       10,435             10,435         10,435               10,435
+  tokenAdvances                      -        -             4,539               4,500        3,810              3,810          3,810                3,810
+
+Execution (wall-clock, non-deterministic; simulator cost, not production cost)
+  arm                  runs  wall median  wall min  wall max  spread  thread CPU median  sched elapsed (corr.)
+  E0 FIFO                 3      23.5 ms   23.3 ms   23.8 ms    2.4%            23.5 ms                 1.0 ms
+  E1 DWRR                 3      24.6 ms   24.4 ms   24.9 ms    1.7%            24.6 ms                 1.3 ms
+  E2 WDEDF-MESSAGE        3      27.5 ms   27.3 ms   27.7 ms    1.4%            27.5 ms                 2.7 ms
+  E3 E3-WDEDF-BUDGET      3      38.5 ms   38.1 ms   38.6 ms    1.3%            38.5 ms                 5.0 ms
+  E4 E4-SHARD             3      44.2 ms   44.2 ms   45.7 ms    3.4%            44.2 ms                10.6 ms
+  E5 E5-SHARD-AGING       3      43.9 ms   43.2 ms   45.6 ms    5.4%            43.9 ms                10.1 ms
+  E4-F E4-SHARD           3      44.0 ms   42.5 ms   45.9 ms    7.6%            44.0 ms                10.8 ms
+  E5-F E5-SHARD-AGING     3      43.5 ms   43.2 ms   44.6 ms    3.1%            43.5 ms                10.3 ms
+Blast radius E4-F vs E4: 0 of 15 non-aggressor tenants affected, additional misses 0
+Blast radius E5-F vs E5: 0 of 15 non-aggressor tenants affected, additional misses 0
+
+Results written to /Users/ariel/dev/personal/infobankAssignmentSimulator/results/v04-20261125-035612

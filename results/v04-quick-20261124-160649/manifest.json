@@ -1,0 +1,27 @@
+{
+  "simulator_version": "0.4.0",
+  "schema_version": 1,
+  "suite": "v04-quick",
+  "created_at_utc": "2026-11-24T16:06:49.636128Z",
+  "java_version": "21.0.2",
+  "time_units": {
+    "virtual_time": "microseconds",
+    "execution_time": "nanoseconds"
+  },
+  "run_settings": {
+    "quick": "true",
+    "warmup_runs": "0",
+    "measured_runs": "1",
+    "base_quantum": "10"
+  },
+  "experiment_count": 38,
+  "files": [
+    "manifest.json",
+    "experiment-config.json",
+    "experiment-results.json",
+    "experiment-summary.csv",
+    "tenant-metrics.csv",
+    "message-type-metrics.csv",
+    "scheduler-metrics.csv"
+  ]
+}

@@ -1,0 +1,1978 @@
+[
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S2",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "campaign_messages": "20000",
+      "tps": "450",
+      "description": "Noisy neighbour (v0.1 baseline)",
+      "messages": 20001,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S3",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "otp_duration_s": "60",
+      "otp_interval_ms": "333",
+      "campaign_messages": "20000",
+      "description": "Continuous OTP traffic (one OTP every 0.333 s for 60 s)",
+      "messages": 20181,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S5",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "ads_per_tenant": "5000",
+      "description": "Intra-tenant HOL: tenant A's OTPs behind its own 5000 ads",
+      "messages": 10020,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "A",
+          "weight": 1
+        },
+        {
+          "tenant_id": "B",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S12-load1.0",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "seed": "7",
+      "load": "1.0",
+      "description": "Urgent overload: 5 OTP tenants at 1.00 × capacity (TTL 5 s) + ads backlog",
+      "messages": 203775,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "ADS",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP0",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP1",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP2",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP3",
+          "weight": 1
+        },
+        {
+          "tenant_id": "OTP4",
+          "weight": 1
+        }
+      ],
+      "observation_window": {
+        "end_us": 120000000,
+        "short_window_us": 1000000,
+        "start_us": 10000000
+      }
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "S13",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "stream_rate": "300",
+      "description": "Prolonged waiting: L (24 h deadline, 5000 ads) vs S stream (300/s, 300 s deadline)",
+      "messages": 23002,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "L",
+          "weight": 1
+        },
+        {
+          "tenant_id": "S",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E0",
+    "label": "Shared FIFO",
+    "settings": {
+      "scheduler": "FIFO"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E1",
+    "label": "Tenant queues + DWRR (base quantum 10)",
+    "settings": {
+      "scheduler": "DWRR",
+      "baseQuantum": "10",
+      "topology": "TENANT"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E2",
+    "label": "WDEDF, business dispatch target, Λ=5%",
+    "settings": {
+      "lambdaBasisPoints": "500",
+      "scheduler": "WDEDF",
+      "baseQuantum": "10",
+      "idleDebtPolicy": "PAPER_RESET",
+      "departure": "BUSINESS",
+      "topology": "TENANT",
+      "minimumQuantum": "derived"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E3",
+    "label": "WDEDF + tenant×type queues + Service Budget",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "false",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E4",
+    "label": "E3 + Shuffle Sharding",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E5",
+    "label": "E4 + Aging",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E4-F",
+    "label": "E4 with shard 1 failure",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[ResourceEvent[time=10000000, resource=1, failure=true], ResourceEvent[time=40000000, resource=1, failure=false]]",
+      "aging.thresholdMicros": "disabled"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  },
+  {
+    "scenario_id": "F1",
+    "experiment_id": "E5-F",
+    "label": "E5 with shard 1 failure",
+    "settings": {
+      "scheduler": "WDEDF",
+      "departure": "BUSINESS",
+      "lambdaBasisPoints": "500",
+      "topology": "TENANT_AND_TYPE (class-partitioned)",
+      "baseQuantum": "10",
+      "budget.otpWeight": "3",
+      "budget.advertisementWeight": "7",
+      "budget.otpLimitBasisPoints": "0",
+      "budget.advertisementLimitBasisPoints": "0",
+      "budget.tenantRateBasisPoints": "8000",
+      "budget.tenantBurst": "50",
+      "sharding.enabled": "true",
+      "sharding.shards": "4",
+      "sharding.subsetSize": "2",
+      "sharding.seed": "42",
+      "failures": "[ResourceEvent[time=10000000, resource=1, failure=true], ResourceEvent[time=40000000, resource=1, failure=false]]",
+      "aging.thresholdMicros": "30000000"
+    },
+    "workload": {
+      "aggressor": "T00",
+      "failure": "shard 1 down [10 s, 40 s)",
+      "description": "Aggressor T00 (20000 ads) + 15 tenants with ads and OTPs (TTL 10 s)",
+      "messages": 24950,
+      "provider_capacity": 450,
+      "service_model": "MESSAGE_RATE",
+      "delivery_delay_us": 100000,
+      "tenants": [
+        {
+          "tenant_id": "T00",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T01",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T02",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T03",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T04",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T05",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T06",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T07",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T08",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T09",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T10",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T11",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T12",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T13",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T14",
+          "weight": 1
+        },
+        {
+          "tenant_id": "T15",
+          "weight": 1
+        }
+      ],
+      "observation_window": null
+    }
+  }
+]
