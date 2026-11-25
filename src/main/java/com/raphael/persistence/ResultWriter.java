@@ -16,6 +16,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public final class ResultWriter {
   public static Path write(Path baseDir, String suite, Map<String, String> runSettings,
       List<Entry> entries) throws IOException {
     Files.createDirectories(baseDir);
-    String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
+    String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneId.of("Asia/Seoul"))
         .format(Instant.now());
     Path dir = null;
     for (int n = 1; dir == null; n++) {
