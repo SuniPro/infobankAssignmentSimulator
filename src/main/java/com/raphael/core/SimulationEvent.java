@@ -21,7 +21,7 @@ public record SimulationEvent(
   }
 
   /**
-   * 전순서(total order)이자 결정론적인 이벤트 순서: timestamp, 이벤트 유형, 삽입 sequence 순으로
+   * 모든 순서(total order)이자 결정론적인 이벤트 순서: timestamp, 이벤트 유형, 삽입 sequence 순으로
    * 비교한다. sequence 번호가 유일하므로 두 이벤트가 같다고 비교되는 경우는 없다.
    */
   public static final Comparator<SimulationEvent> ORDER = (left, right) -> {

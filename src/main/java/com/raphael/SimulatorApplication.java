@@ -25,7 +25,7 @@ import java.util.Set;
  *
  * <p>옵션은 모두 선택 사항이며 {@code --key=value} 형식이다.
  * <pre>
- *   --suite=all|history|paper|message|sweep|v04  (기본값 all; v04 는 all 에 포함되지 않음)
+ *   --suite=all|history|paper|message|sweep|v04|v10  (기본값 all; v04·v10 은 all 에 포함되지 않음)
  *   --quick=true                 v04: warm-up 0, 측정 1 회, 축소 워크로드
  *   --output-dir=results         v04: CSV·JSON 결과 상위 디렉터리 (실행마다 새 하위 디렉터리)
  *                                history: v0.2 S1–S4b FIFO/DWRR 보고서 + 같은 시나리오의 v0.3 arm
@@ -71,10 +71,10 @@ public final class SimulatorApplication {
         ScenarioGenerator.OTP_TENANT, ScenarioGenerator.CAMPAIGN_TENANT);
 
     String suite = options.getOrDefault("suite", "all").toLowerCase(Locale.ROOT);
-    if (!List.of("all", "history", "paper", "message", "sweep", "v04").contains(suite)) {
+    if (!List.of("all", "history", "paper", "message", "sweep", "v04", "v10").contains(suite)) {
       throw new IllegalArgumentException("Unknown suite " + suite);
     }
-    if (suite.equals("v04")) {
+    if (suite.equals("v04") || suite.equals("v10")) {
       boolean quick = Boolean.parseBoolean(options.getOrDefault("quick", "false"));
       int warmup = quick ? 0 : intOption(options, "warmup", 1);
       int runs = quick ? 1 : intOption(options, "runs", 3);
@@ -85,8 +85,14 @@ public final class SimulatorApplication {
       settings.put("measured_runs", String.valueOf(runs));
       settings.put("base_quantum", String.valueOf(quantum));
       try {
-        new V04Suite(new ExperimentRunner(warmup, runs), System.out, quick, quantum).run(
-            java.nio.file.Path.of(options.getOrDefault("output-dir", "results")), settings);
+        java.nio.file.Path output =
+            java.nio.file.Path.of(options.getOrDefault("output-dir", "results"));
+        if (suite.equals("v04")) {
+          new V04Suite(new ExperimentRunner(warmup, runs), System.out, quick, quantum)
+              .run(output, settings);
+        } else {
+          new V10Suite(new ExperimentRunner(warmup, runs), System.out, quick).run(output, settings);
+        }
       } catch (java.io.IOException e) {
         throw new java.io.UncheckedIOException(e);
       }
